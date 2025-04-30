@@ -6,9 +6,9 @@ const Footer: React.FC = () => {
     <footer className="w-full py-6 mt-auto">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-4">
         <div className="text-white/40 text-sm mb-4 md:mb-0">
-          © 2025 UniSwap Interface Clone
+          © 2025 Qswap
         </div>
-        
+
         <div className="flex items-center space-x-4">
           <a href="#" className="text-white/60 hover:text-white transition-colors">
             <Twitter className="w-5 h-5" />
