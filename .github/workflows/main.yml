@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_IMAGE: ardialqlause/Qswap
+  DOCKER_IMAGE: ardialqlause/qswap
 
 jobs:
   build-and-push:
