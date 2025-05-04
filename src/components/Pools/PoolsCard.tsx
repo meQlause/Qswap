@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, TouchEvent } from 'react';
 import { Plus, Search, ArrowUpDown, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -20,11 +20,36 @@ const PoolsCard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'pools' | 'my-pools'>('pools');
   const [showNewLiquidityModal, setShowNewLiquidityModal] = useState(false);
   const [showTabIndicator, setShowTabIndicator] = useState(false);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
 
   const handleTabChange = (tab: 'pools' | 'my-pools') => {
     setShowTabIndicator(true);
     setActiveTab(tab);
     setTimeout(() => setShowTabIndicator(false), 1500);
+  };
+
+  const handleTouchStart = (e: TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const swipeThreshold = 50; // minimum distance for swipe
+    const swipeDistance = touchEndX.current - touchStartX.current;
+
+    if (Math.abs(swipeDistance) > swipeThreshold) {
+      if (swipeDistance > 0 && activeTab === 'my-pools') {
+        // Swipe right to go to pools
+        handleTabChange('pools');
+      } else if (swipeDistance < 0 && activeTab === 'pools') {
+        // Swipe left to go to my pools
+        handleTabChange('my-pools');
+      }
+    }
   };
 
   const pools: Pool[] = [
@@ -58,7 +83,12 @@ const PoolsCard: React.FC = () => {
         <ChevronRight className="w-7 h-7" />
       </button>
 
-      <div className="w-full bg-[#191b1f] rounded-3xl shadow-lg overflow-hidden min-h-[600px] flex items-center justify-center">
+      <div
+        className="w-full bg-[#191b1f] rounded-3xl shadow-lg overflow-hidden min-h-[600px] flex items-center justify-center"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <AnimatePresence mode="wait">
           {showTabIndicator ? (
             <motion.div
@@ -69,7 +99,7 @@ const PoolsCard: React.FC = () => {
               transition={{ duration: 0.5 }}
               className="absolute inset-0 flex items-center justify-center z-50"
             >
-              <span className="text-white font-bold text-5xl md:text-7xl bg-[#212429] px-12 py-8 rounded-3xl shadow-2xl ">
+              <span className="text-white font-bold text-5xl md:text-7xl bg-[#212429] px-12 py-8 rounded-3xl shadow-2xl">
                 {activeTab === 'pools' ? 'Pools' : 'My Pools'}
               </span>
             </motion.div>

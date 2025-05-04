@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Settings, ArrowDown, Info, X } from 'lucide-react';
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, number } from "framer-motion";
 import TokenSelector from './TokenSelector';
 import SwapSettings from './SwapSettings';
 
@@ -12,8 +12,22 @@ const modalVariants = {
 
 const SwapCard: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
-  const [fromAmount, setFromAmount] = useState('');
-  const [toAmount, setToAmount] = useState('');
+  const [amountToken1, setAmountToken1] = useState<number>(0);
+  const [token1, setToken1] = useState('ETH');
+  const [amountToken2, setAmountToken2] = useState<number>(0);
+  const [token2, setToken2] = useState('USDC');
+
+  const handleSwapTokens = () => {
+    const tempToken = token1;
+    setToken1(token2);
+    setToken2(tempToken);
+
+    const tempAmount = amountToken1;
+    setAmountToken1(amountToken2);
+    setAmountToken2(tempAmount);
+  };
+
+
 
   return (
     <div className="w-full max-w-md mx-auto bg-[#191b1f] rounded-3xl shadow-lg overflow-hidden">
@@ -65,16 +79,22 @@ const SwapCard: React.FC = () => {
               type="text"
               className="bg-transparent text-2xl text-white outline-none w-3/5"
               placeholder="0.0"
-              value={fromAmount}
-              onChange={(e) => setFromAmount(e.target.value)}
+              value={amountToken1}
+              onChange={(e) => setAmountToken1(Number(e.target.value ? e.target.value : 0))}
             />
-            <TokenSelector defaultToken="ETH" />
+            <TokenSelector
+              defaultToken={token1}
+              onTokenSelect={setToken1}
+            />
           </div>
           <div className="mt-2 text-sm text-white/60">~$0.00</div>
         </div>
 
         <div className="flex justify-center -my-3 relative z-10">
-          <button className="bg-[#282c34] hover:bg-[#31353e] transition-colors w-10 h-10 rounded-xl flex items-center justify-center border border-[#191b1f]">
+          <button
+            onClick={handleSwapTokens}
+            className="bg-[#282c34] hover:bg-[#31353e] transition-colors w-10 h-10 rounded-xl flex items-center justify-center border border-[#191b1f]"
+          >
             <ArrowDown className="w-5 h-5 text-white/80" />
           </button>
         </div>
@@ -90,17 +110,20 @@ const SwapCard: React.FC = () => {
               type="text"
               className="bg-transparent text-2xl text-white outline-none w-3/5"
               placeholder="0.0"
-              value={toAmount}
-              onChange={(e) => setToAmount(e.target.value)}
+              value={amountToken2}
+              onChange={(e) => setAmountToken2(Number(e.target.value ? e.target.value : 0))}
             />
-            <TokenSelector defaultToken="USDC" />
+            <TokenSelector
+              defaultToken={token2}
+              onTokenSelect={setToken2}
+            />
           </div>
           <div className="mt-2 text-sm text-white/60">~$0.00</div>
         </div>
 
         <div className="bg-[#212429] rounded-2xl p-3 mb-4 flex justify-between items-center text-sm">
           <div className="flex items-center">
-            <span className="text-white/80">1 ETH = 2,054.34 USDC</span>
+            <span className="text-white/80">1 {token1} = 2,054.34 {token2}</span>
             <Info className="ml-1 w-3.5 h-3.5 text-white/60" />
           </div>
           <button>
