@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, ArrowDown, Info, ChevronDown, X } from 'lucide-react';
+import { Settings, ArrowDown, Info, X } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import TokenSelector from './TokenSelector';
 import SwapSettings from './SwapSettings';
