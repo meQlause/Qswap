@@ -3,9 +3,19 @@ import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer';
 import SwapCard from './components/Swap/SwapCard';
 import PoolsCard from './components/Pools/PoolsCard';
+import LoadingScreen from './components/Loading/LoadingScreen';
 
 function App() {
   const [activeView, setActiveView] = useState<'swap' | 'pools'>('swap');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const styles = `
@@ -42,6 +52,10 @@ function App() {
       };
     }
   }, []);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#191b1f] to-[#212429] flex flex-col">
