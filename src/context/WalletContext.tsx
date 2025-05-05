@@ -33,6 +33,12 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
                 return;
             }
 
+            // Check if user previously disconnected
+            const wasDisconnected = localStorage.getItem('walletDisconnected') === 'true';
+            if (wasDisconnected) {
+                return;
+            }
+
             const accounts = await ethereum.request({ method: 'eth_accounts' });
             if (accounts.length !== 0) {
                 setAccount(accounts[0]);
@@ -50,6 +56,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
                 alert('Please install MetaMask!');
                 return;
             }
+
+            // Clear disconnection state when connecting
+            localStorage.removeItem('walletDisconnected');
 
             // Force MetaMask to open the connection popup
             await ethereum.request({
@@ -70,8 +79,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         // Clear the account
         setAccount(null);
 
-        // Clear any stored data
-        localStorage.removeItem('walletConnected');
+        // Store disconnection state
+        localStorage.setItem('walletDisconnected', 'true');
 
         // Force MetaMask to forget the connection
         const { ethereum } = window as any;
