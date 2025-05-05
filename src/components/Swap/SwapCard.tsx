@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Settings, ArrowDown, Info, X } from 'lucide-react';
-import { motion, AnimatePresence, number } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import TokenSelector from './TokenSelector';
 import SwapSettings from './SwapSettings';
+import ConnectButton from '../UI/ConnectButton';
+import { useWallet } from '../../context/WalletContext';
 
 const modalVariants = {
   hidden: { opacity: 0, scale: 0.95 },
@@ -11,6 +13,7 @@ const modalVariants = {
 };
 
 const SwapCard: React.FC = () => {
+  const { account } = useWallet();
   const [showSettings, setShowSettings] = useState(false);
   const [amountToken1, setAmountToken1] = useState<number>(0);
   const [token1, setToken1] = useState('ETH');
@@ -132,10 +135,17 @@ const SwapCard: React.FC = () => {
             </svg>
           </button>
         </div>
-
-        <button className="w-full py-4 bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium rounded-2xl text-base">
-          Connect Wallet
-        </button>
+        {
+          account ? (
+            <button className="w-full py-4 bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium rounded-2xl text-base">
+              swap
+            </button>
+          ) : (
+            <div className="w-full py-4 bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium rounded-2xl text-base flex justify-center">
+              <ConnectButton />
+            </div>
+          )
+        }
       </div>
     </div>
   );

@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer';
 import SwapCard from './components/Swap/SwapCard';
 import PoolsCard from './components/Pools/PoolsCard';
 import LoadingScreen from './components/Loading/LoadingScreen';
+import { WalletProvider } from './context/WalletContext';
+import CreateToken from './components/Token/CreateToken';
 
 function App() {
-  const [activeView, setActiveView] = useState<'swap' | 'pools'>('swap');
+  const [activeView, setActiveView] = useState<'swap' | 'pools' | 'create-token'>('swap');
+  const [slideBehavior, setSlideBehavior] = useState<string>('opacity-0 absolute');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,6 +19,11 @@ function App() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (activeView === 'create-token') setSlideBehavior('-translate-x-full opacity-0 absolute');
+    if (activeView === 'swap') setSlideBehavior('translate-x-full opacity-0 absolute');
+  }, [activeView]);
 
   useEffect(() => {
     const styles = `
@@ -58,20 +66,25 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#191b1f] to-[#212429] flex flex-col">
-      <Header activeView={activeView} onViewChange={setActiveView} />
+    <WalletProvider>
+      <div className="min-h-screen bg-gradient-to-b from-[#191b1f] to-[#212429] flex flex-col">
+        <Header activeView={activeView} onViewChange={setActiveView} />
 
-      <main className="relative flex-1 overflow-hidden flex flex-col items-center justify-center p-4">
-        <div className={`transform transition-all duration-500 w-full ${activeView === 'swap' ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 absolute'}`}>
-          <SwapCard />
-        </div>
-        <div className={`transform transition-all duration-500 w-full ${activeView === 'pools' ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 absolute'}`}>
-          <PoolsCard />
-        </div>
-      </main>
+        <main className="relative flex-1 overflow-hidden flex flex-col items-center justify-center p-4">
+          <div className={`transform transition-all duration-500 w-full ${activeView === 'swap' ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 absolute'}`}>
+            <SwapCard />
+          </div>
+          <div className={`transform transition-all duration-500 w-full ${activeView === 'pools' ? 'translate-x-0 opacity-100' : slideBehavior}`}>
+            <PoolsCard />
+          </div>
+          <div className={`transform transition-all duration-500 w-full ${activeView === 'create-token' ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 absolute'}`}>
+            <CreateToken />
+          </div>
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div >
+    </WalletProvider >
   );
 }
 

@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { Settings, Menu, ChevronDown, X } from 'lucide-react';
+import { Menu, ChevronDown, X } from 'lucide-react';
 import Logo from '../UI/Logo';
 import { AnimatePresence, motion } from 'framer-motion';
+import ConnectButton from '../UI/ConnectButton';
+import { useWallet } from '../../context/WalletContext';
 
 interface HeaderProps {
-  activeView: 'swap' | 'pools';
-  onViewChange: (view: 'swap' | 'pools') => void;
+  activeView: 'swap' | 'pools' | 'create-token';
+  onViewChange: (view: 'swap' | 'pools' | 'create-token') => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
+  const { account, disconnectWallet } = useWallet();
   const [isNetworkOpen, setIsNetworkOpen] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState('Ethereum');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -19,6 +22,10 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
     { name: 'ZkSync', color: 'bg-red-500' },
     { name: 'Radix', color: 'bg-blue-500' }
   ];
+
+  const handleViewChange = (view: 'swap' | 'pools' | 'create-token') => {
+    onViewChange(view);
+  }
 
   return (
     <>
@@ -34,18 +41,24 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
             <Logo />
             <nav className="hidden md:flex ml-8 space-x-4">
               <button
-                onClick={() => onViewChange('swap')}
+                onClick={() => handleViewChange('swap')}
                 className={`transition-colors px-3 py-2 text-sm font-medium ${activeView === 'swap' ? 'text-white' : 'text-white/60 hover:text-white'
                   }`}
               >
                 Swap
               </button>
               <button
-                onClick={() => onViewChange('pools')}
+                onClick={() => handleViewChange('pools')}
                 className={`transition-colors px-3 py-2 text-sm font-medium ${activeView === 'pools' ? 'text-white' : 'text-white/60 hover:text-white'
                   }`}
               >
                 Pools
+              </button>
+              <button
+                onClick={() => handleViewChange('create-token')}
+                className={`transition-colors px-3 py-2 text-sm font-medium ${activeView === 'create-token' ? 'text-white' : 'text-white/60 hover:text-white'}`}
+              >
+                Create Token
               </button>
             </nav>
           </div>
@@ -94,10 +107,11 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
                 )}
               </AnimatePresence>
             </div>
-
-            <button className="hidden w-full md:flex bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium py-1.5 px-4 rounded-xl text-sm">
-              Connect Wallet
-            </button>
+            {account ?
+              <div className='md:block hidden bg-pink-500 hover:bg-pink-400 transition-colors p-1.5 rounded-xl'>
+                <ConnectButton />
+              </div> : ''
+            }
           </div>
         </div>
       </header>
@@ -114,7 +128,6 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
               className="fixed inset-0 bg-black/50 z-40 block md:hidden"
               onClick={() => setIsSidebarOpen(false)}
             />
-
             {/* Sidebar */}
             <motion.div
               initial={{ x: -300 }}
@@ -138,6 +151,16 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
               <nav className="p-4">
                 <button
                   onClick={() => {
+                    onViewChange('swap');
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${activeView === 'swap' ? 'bg-[#2c2f36] text-white' : 'text-white/60 hover:bg-[#2c2f36] hover:text-white'
+                    }`}
+                >
+                  Swap
+                </button>
+                <button
+                  onClick={() => {
                     onViewChange('pools');
                     setIsSidebarOpen(false);
                   }}
@@ -148,14 +171,25 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
                 </button>
                 <button
                   onClick={() => {
-                    onViewChange('swap');
+                    onViewChange('create-token');
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${activeView === 'swap' ? 'bg-[#2c2f36] text-white' : 'text-white/60 hover:bg-[#2c2f36] hover:text-white'
-                    }`}
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${activeView === 'create-token' ? 'bg-[#2c2f36] text-white' : 'text-white/60 hover:bg-[#2c2f36] hover:text-white'}`}
                 >
-                  Swap
+                  Create Token
                 </button>
+
+                {
+                  account ? (
+                    <button
+                      onClick={disconnectWallet}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-colors text-white/60 hover:bg-[#2c2f36] hover:text-white'
+                        }`}
+                    >
+                      Disconnect
+                    </button>
+                  ) : ''
+                }
               </nav>
             </motion.div>
           </>

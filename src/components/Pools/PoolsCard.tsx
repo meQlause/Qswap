@@ -1,6 +1,8 @@
 import React, { useState, useRef, TouchEvent } from 'react';
 import { Plus, Search, ArrowUpDown, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
+import ConnectButton from '../UI/ConnectButton';
+import { useWallet } from '../../context/WalletContext';
 
 interface Pool {
   id: number;
@@ -17,6 +19,7 @@ const modalVariants = {
 
 
 const PoolsCard: React.FC = () => {
+  const { account } = useWallet();
   const [activeTab, setActiveTab] = useState<'pools' | 'my-pools'>('pools');
   const [showNewLiquidityModal, setShowNewLiquidityModal] = useState(false);
   const [showTabIndicator, setShowTabIndicator] = useState(false);
@@ -168,46 +171,67 @@ const PoolsCard: React.FC = () => {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="w-full"
                     >
-                      <div className="bg-[#212429]  min-h-[500px] rounded-2xl py-32 text-center">
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.3, delay: 0.1 }}
-                          className="flex flex-col items-center justify-center space-y-5"
-                        >
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.3, delay: 0.2 }}
-                            className="w-16 h-16 bg-[#282c34] rounded-full flex items-center justify-center"
-                          >
-                            <Plus className="w-8 h-8 text-white/60" />
-                          </motion.div>
-                          <motion.h3
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: 0.3 }}
-                            className="text-white font-medium"
-                          >
-                            Your active V3 liquidity positions will appear here
-                          </motion.h3>
-                          <motion.p
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: 0.4 }}
-                            className="text-white/60 text-sm max-w-md"
-                          >
-                            Your active liquidity positions will appear here. Create a position to start earning fees on trades.
-                          </motion.p>
-                          <motion.button
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: 0.5 }}
-                            className="bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium py-3 px-6 rounded-2xl text-sm mt-4"
-                          >
-                            Connect Wallet
-                          </motion.button>
-                        </motion.div>
+                      <div className="bg-[#212429] min-h-[500px] rounded-2xl p-6">
+                        <h4 className="text-white font-medium mb-3">My pools</h4>
+                        <div className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
+                          {account ?
+
+                            pools.map((pool, index) => (
+                              <motion.div
+                                key={pool.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: index * 0.1 }}
+                                className="bg-[#282c34] rounded-xl p-4"
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-white">{pool.pair}</span>
+                                  <span className="text-white/60">{pool.fee} fee</span>
+                                </div>
+                                <div className="text-sm text-white/60">TVL: {pool.tvl}</div>
+                              </motion.div>
+                            )) :
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.3, delay: 0.1 }}
+                              className="flex flex-col items-center justify-center space-y-5"
+                            >
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.3, delay: 0.2 }}
+                                className="w-16 h-16 bg-[#282c34] rounded-full flex items-center justify-center"
+                              >
+                                <Plus className="w-8 h-8 text-white/60" />
+                              </motion.div>
+                              <motion.h3
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: 0.3 }}
+                                className="text-white font-medium"
+                              >
+                                Your active V3 liquidity positions will appear here
+                              </motion.h3>
+                              <motion.p
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: 0.4 }}
+                                className="text-white/60 text-sm max-w-md"
+                              >
+                                Your active liquidity positions will appear here. Create a position to start earning fees on trades.
+                              </motion.p>
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: 0.5 }}
+                                className="bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium py-3 px-6 rounded-2xl text-sm mt-4"
+                              >
+                                <ConnectButton />
+                              </motion.div>
+                            </motion.div>
+                          }
+                        </div>
                       </div>
                     </motion.div>
                   )}
