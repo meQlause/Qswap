@@ -6,11 +6,68 @@ import PoolsCard from './components/Pools/PoolsCard';
 import LoadingScreen from './components/Loading/LoadingScreen';
 import { WalletProvider } from './context/WalletContext';
 import CreateToken from './components/Token/CreateToken';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, AlertCircle } from 'lucide-react';
+
+const WelcomeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="bg-[#212429] rounded-2xl p-6 max-w-md w-full mx-4 relative"
+      >
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 text-white/60 hover:text-white"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="flex flex-col items-center text-center space-y-4">
+          <AlertCircle className="w-16 h-16 text-yellow-500" />
+
+          <h3 className="text-xl font-semibold text-yellow-500">
+            Welcome to Qswap!
+          </h3>
+
+          <div className="space-y-3 text-white/80">
+            <p>We've deployed our contract on Mega Testnet!</p>
+            <p>To use our features, please make sure to:</p>
+            <ol className="list-decimal list-inside text-left space-y-2">
+              <li>Open MetaMask</li>
+              <li>Switch to Mega Testnet</li>
+              <li>If Mega Testnet is not added, add it with these details:</li>
+            </ol>
+            <div className="bg-[#282c34] rounded-xl p-4 mt-2 text-left">
+              <p className="text-white/60 text-sm mb-1">Network Details:</p>
+              <p className="text-white text-sm">Network Name: Mega Testnet</p>
+              <p className="text-white text-sm">RPC URL: https://rpc.megatestnet.com</p>
+              <p className="text-white text-sm">Chain ID: 1337</p>
+              <p className="text-white text-sm">Currency Symbol: MEGA</p>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="mt-4 px-6 py-2 rounded-xl font-medium bg-yellow-500 hover:bg-yellow-600 text-white transition-colors"
+          >
+            Got it!
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 function App() {
   const [activeView, setActiveView] = useState<'swap' | 'pools' | 'create-token'>('swap');
   const [slideBehavior, setSlideBehavior] = useState<string>('opacity-0 absolute');
   const [loading, setLoading] = useState(true);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -68,6 +125,10 @@ function App() {
   return (
     <WalletProvider>
       <div className="min-h-screen bg-gradient-to-b from-[#191b1f] to-[#212429] flex flex-col">
+        <WelcomeModal
+          isOpen={showWelcomeModal}
+          onClose={() => setShowWelcomeModal(false)}
+        />
         <Header activeView={activeView} onViewChange={setActiveView} />
 
         <main className="relative flex-1 overflow-hidden flex flex-col items-center justify-center p-4">

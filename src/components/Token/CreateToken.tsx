@@ -1,8 +1,9 @@
 import React, { useState, useRef, TouchEvent } from 'react';
 import { useWallet } from '../../context/WalletContext';
 import ConnectButton from '../UI/ConnectButton';
-import { Search, ArrowUpDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Search, ArrowUpDown, ChevronLeft, ChevronRight, Plus, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
+import createToken from '../../utils/tokenDeploy';
 
 interface Token {
     id: number;
@@ -12,6 +13,67 @@ interface Token {
     holders: number;
 }
 
+interface ModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    type: 'success' | 'error';
+    message: string;
+    tokenAddress?: string;
+}
+
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, type, message, tokenAddress }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-[#212429] rounded-2xl p-6 max-w-md w-full mx-4 relative"
+            >
+                <button
+                    onClick={onClose}
+                    className="absolute right-4 top-4 text-white/60 hover:text-white"
+                >
+                    <X size={20} />
+                </button>
+
+                <div className="flex flex-col items-center text-center space-y-4">
+                    {type === 'success' ? (
+                        <CheckCircle className="w-16 h-16 text-green-500" />
+                    ) : (
+                        <AlertCircle className="w-16 h-16 text-red-500" />
+                    )}
+
+                    <h3 className={`text-xl font-semibold ${type === 'success' ? 'text-green-500' : 'text-red-500'}`}>
+                        {type === 'success' ? 'Success!' : 'Error'}
+                    </h3>
+
+                    <p className="text-white/80">{message}</p>
+
+                    {tokenAddress && (
+                        <div className="w-full bg-[#282c34] rounded-xl p-4 mt-2">
+                            <p className="text-white/60 text-sm mb-1">Token Address:</p>
+                            <p className="text-white break-all text-sm">{tokenAddress}</p>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={onClose}
+                        className={`mt-4 px-6 py-2 rounded-xl font-medium ${type === 'success'
+                            ? 'bg-green-500 hover:bg-green-600'
+                            : 'bg-red-500 hover:bg-red-600'
+                            } text-white transition-colors`}
+                    >
+                        Close
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
 const CreateToken: React.FC = () => {
     const { account } = useWallet();
     const [activeTab, setActiveTab] = useState<'create-token' | 'my-tokens'>('create-token');
@@ -19,10 +81,20 @@ const CreateToken: React.FC = () => {
     const [name, setName] = useState('');
     const [symbol, setSymbol] = useState('');
     const [decimals, setDecimals] = useState(18);
-    const [initialSupply, setInitialSupply] = useState('');
+    const [initialSupply, setInitialSupply] = useState<number>(18);
     const [mintable, setMintable] = useState(false);
     const [burnable, setBurnable] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [modalState, setModalState] = useState<{
+        isOpen: boolean;
+        type: 'success' | 'error';
+        message: string;
+        tokenAddress?: string;
+    }>({
+        isOpen: false,
+        type: 'success',
+        message: '',
+    });
     const touchStartX = useRef<number>(0);
     const touchEndX = useRef<number>(0);
 
@@ -53,11 +125,32 @@ const CreateToken: React.FC = () => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        setTimeout(() => setIsSubmitting(false), 1500);
-        alert('Token creation logic goes here!');
+        try {
+            const tokenAddress = await createToken(initialSupply, name, symbol, mintable, burnable);
+            setModalState({
+                isOpen: true,
+                type: 'success',
+                message: 'Your token has been created successfully!',
+                tokenAddress,
+            });
+        } catch (error) {
+            setModalState({
+                isOpen: true,
+                type: 'error',
+                message: 'Failed to create token. Please try again.',
+            });
+        } finally {
+            setIsSubmitting(false);
+            setInitialSupply(18);
+            setName('');
+            setSymbol('');
+            setDecimals(18);
+            setMintable(false);
+            setBurnable(false);
+        }
     };
 
     const myTokens: Token[] = [
@@ -72,6 +165,13 @@ const CreateToken: React.FC = () => {
 
     return (
         <div className="relative w-full max-w-4xl mx-auto">
+            <Modal
+                isOpen={modalState.isOpen}
+                onClose={() => setModalState(prev => ({ ...prev, isOpen: false }))}
+                type={modalState.type}
+                message={modalState.message}
+                tokenAddress={modalState.tokenAddress}
+            />
             {/* Left Arrow */}
             <button
                 onClick={() => handleTabChange('create-token')}
@@ -169,7 +269,7 @@ const CreateToken: React.FC = () => {
                                                         type="number"
                                                         className="w-full bg-[#212429] text-white rounded-xl px-4 py-3 outline-none"
                                                         value={initialSupply}
-                                                        onChange={e => setInitialSupply(e.target.value)}
+                                                        onChange={e => setInitialSupply(Number(e.target.value))}
                                                         min={0}
                                                         required
                                                     />

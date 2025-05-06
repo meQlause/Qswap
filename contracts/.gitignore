@@ -1,0 +1,32 @@
+# Node modules
+/node_modules/
+
+# Hardhat build artifacts and cache
+/artifacts/
+/cache/
+
+# .env files to store environment variables (private keys, API keys, etc.)
+.env
+
+# Logs
+*.log
+
+# Local configuration files
+*.local
+
+# IDE and editor folders and files
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Coverage directory (if using a testing coverage tool like solidity-coverage)
+coverage/
+
+# Hardhat's contract tests (if you have them in a test directory)
+test/
+
+# Compiled contracts (bytecode and ABI) output
+compiled_contracts/
