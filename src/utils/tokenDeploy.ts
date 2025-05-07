@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import QswapTokenCreator from "../../contracts/artifacts/contracts/token.sol/QswapTokenCreator.json";
+import QswapTokenCreator from "../../contracts/artifacts/contracts/token/token.sol/QswapTokenCreator.json";
 
 declare global {
     interface Window {
