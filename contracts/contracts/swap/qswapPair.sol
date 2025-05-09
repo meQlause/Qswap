@@ -33,7 +33,7 @@ contract QswapConstantProductPair {
             address give, address get,
             uint256 effectiveAmountToSwap
         ) 
-        = _getOptions(amountToSwap, isReverse, addressTokenToswap);
+        = _getSwapOptions(amountToSwap, isReverse, addressTokenToswap);
 
         uint256 amountToGet = (k / (reserve2 + effectiveAmountToSwap)) - reserve2;
 
@@ -43,8 +43,19 @@ contract QswapConstantProductPair {
     
     }
 
-    function addLiquidity(uint256 amount0, uint256 amount1, bool isReverse) external {
-        // TO DO : implement add liquidity logic
+    function addLiquidity(uint256 amount, bool isReverse) external {
+        (
+            uint256 x, uint256 y,
+            address xAddress, address yAddress
+        ) 
+        = 
+        _getLiquidityOptions(isReverse);
+        uint256 amount_needed = (x * amount) / y;
+        
+        _updateBalance(xAddress, msg.sender, address(this), amount_needed);
+        _updateBalance(yAddress, msg.sender, address(this), amount);
+        _updateReserves();
+
     }
 
     function removeLiquidity(uint256 liquidity) external returns (uint256 amount0, uint256 amount1) {
@@ -55,7 +66,7 @@ contract QswapConstantProductPair {
         _tokenBalanceUpdater.updateBalance(tokenAdress, fromAddress, toAddress, amount);
     }
 
-    function _getOptions(uint256 amountToSwap, bool isReverse, address addressTokenToswap) private view returns (uint256 k, uint256 reserve2, address give, address get, uint256 effectiveAmountToSwap) {
+    function _getSwapOptions(uint256 amountToSwap, bool isReverse, address addressTokenToswap) private view returns (uint256 k, uint256 reserve2, address give, address get, uint256 effectiveAmountToSwap) {
         k = reserveX * reserveY;
         effectiveAmountToSwap = amountToSwap * 997 / 1000;
 
@@ -71,6 +82,20 @@ contract QswapConstantProductPair {
         return (k, reserve2, give, get, effectiveAmountToSwap);
     }
 
+    function _getLiquidityOptions(bool isReverse) private view returns (uint256 x, uint256 y, address xAddress, address yAddress) {
+        if (isReverse) {
+            x = reserveX;
+            y = reserveY;
+            xAddress = tokenX;
+            yAddress = tokenY;
+        } else {
+            x = reserveY;
+            y = reserveX;
+            xAddress = tokenY;
+            yAddress = tokenX;
+        }
+        return (x, y, xAddress, yAddress);
+    }
     function _updateReserves() private {
         reserveX = _tokenBalanceUpdater.getTokenBalance(tokenX, address(this));
         reserveY = _tokenBalanceUpdater.getTokenBalance(tokenY, address(this));

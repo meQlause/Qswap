@@ -34,13 +34,13 @@ contract QswapProxy {
         return true;
     }
 
-    function addLiquidity(address tokenA, address tokenB, uint256 amountA, uint256 amountB) external returns (bool isSuccess) {
+    function addLiquidity(address tokenA, address tokenB, uint256 amountA ) external returns (bool isSuccess) {
         (bool isReverse, address pairToUse) = _setIsReverse(tokenA, tokenB);
         require(pairToUse != address(0), "SwapProxy: PAIR_DOES_NOT_EXIST");
         
         QswapConstantProductPair pairContract = QswapConstantProductPair(pairToUse);
 
-        pairContract.addLiquidity(amountA, amountB, isReverse);
+        pairContract.addLiquidity(amountA, isReverse);
         
         return true;
     }
