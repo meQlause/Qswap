@@ -11,31 +11,31 @@ contract QswapProxy {
     _tokenBalanceUpdaterContract = new TokenBalanceUpdater();
     }
 
-    function createPair(address tokenA, address tokenB, uint256 fee) external returns (address pair) {
-        require(tokenA != tokenB, "SwapFactory: IDENTICAL_ADDRESSES");
-        require(getPair[tokenA][tokenB] == address(0), "SwapFactory: PAIR_EXISTS");
+    function createPair(address tokenX, uint256 amountTokenX, address tokenY, uint256 amountTokenY, uint256 fee) external returns (address pair) {
+        require(tokenX != tokenY, "SwapFactory: IDENTICAL_ADDRESSES");
+        require(getPair[tokenX][tokenY] == address(0), "SwapFactory: PAIR_EXISTS");
     
-        pair = address(new QswapConstantProductPair(tokenA, tokenB, fee, address(_tokenBalanceUpdaterContract)));
+        pair = address(new QswapConstantProductPair(tokenX, amountTokenX, tokenY, amountTokenY, fee, address(_tokenBalanceUpdaterContract)));
         
-        getPair[tokenA][tokenB] = pair;
-        getPair[tokenB][tokenA] = pair;  
+        getPair[tokenX][tokenY] = pair;
+        getPair[tokenY][tokenX] = pair;  
 
-        emit PairCreated(tokenA, tokenB, pair);
+        emit PairCreated(tokenX, tokenY, pair);
     }
 
-    function swap(address tokenA, address tokenB, uint256 amount) external returns (bool isSuccess) {
-        (bool isReverse, address pairToUse) = _setIsReverse(tokenA, tokenB);
+    function swap(address tokenX, address tokenY, uint256 amount) external returns (bool isSuccess) {
+        (bool isReverse, address pairToUse) = _setIsReverse(tokenX, tokenY);
         require(pairToUse != address(0), "SwapProxy: PAIR_DOES_NOT_EXIST");
 
         QswapConstantProductPair pairContract = QswapConstantProductPair(pairToUse);
 
-        pairContract.swap(tokenA, amount, isReverse, msg.sender);
+        pairContract.swap(tokenX, amount, isReverse, msg.sender);
         
         return true;
     }
 
-    function addLiquidity(address tokenA, address tokenB, uint256 amountA ) external returns (bool isSuccess) {
-        (bool isReverse, address pairToUse) = _setIsReverse(tokenA, tokenB);
+    function addLiquidity(address tokenX, address tokenY, uint256 amountA ) external returns (bool isSuccess) {
+        (bool isReverse, address pairToUse) = _setIsReverse(tokenX, tokenY);
         require(pairToUse != address(0), "SwapProxy: PAIR_DOES_NOT_EXIST");
         
         QswapConstantProductPair pairContract = QswapConstantProductPair(pairToUse);
@@ -45,23 +45,23 @@ contract QswapProxy {
         return true;
     }
 
-    function removeLiquidity(address tokenA, address tokenB, uint256 liquidity) external returns (bool isSuccess) {
+    function removeLiquidity(address tokenX, address tokenY, uint256 liquidity) external returns (bool isSuccess) {
         // TO DO : implement removing liquidity logic
     }
 
 
-    function _setIsReverse(address tokenA, address tokenB) private view returns (bool isReverse, address pairToUse) {
+    function _setIsReverse(address tokenX, address tokenY) private view returns (bool isReverse, address pairToUse) {
         
-        if (getPair[tokenA][tokenB] != address(0)) {
-            pairToUse = getPair[tokenA][tokenB];
+        if (getPair[tokenX][tokenY] != address(0)) {
+            pairToUse = getPair[tokenX][tokenY];
             isReverse = false;
-        } else if (getPair[tokenB][tokenA] != address(0)) {
-            pairToUse = getPair[tokenB][tokenA];
+        } else if (getPair[tokenY][tokenX] != address(0)) {
+            pairToUse = getPair[tokenY][tokenX];
             isReverse = true;
         }
         return (isReverse, pairToUse);
     }
 
-    event PairCreated(address indexed tokenA, address indexed tokenB, address pair);
+    event PairCreated(address indexed tokenX, address indexed tokenY, address pair);
 }
 
