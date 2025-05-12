@@ -29,3 +29,5 @@ test/
 
 # Compiled contracts (bytecode and ABI) output
 compiled_contracts/
+
+build-info

@@ -6,8 +6,7 @@ contract TokenBalanceUpdater {
 
     function updateBalance(address tokenAdress, address fromAddress, address toAddress, uint256 amount) external {
         IERC20 token = IERC20(tokenAdress);
-        uint256 scaledAmount = amount;
-        require(token.transferFrom(fromAddress, toAddress, scaledAmount), "Transfer failed");
+        require(token.transferFrom(fromAddress, toAddress, amount), "Transfer failed");
     }
 
     function getTokenBalance(address tokenAdress, address account) external view returns (uint256) {

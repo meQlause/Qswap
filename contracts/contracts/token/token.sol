@@ -31,7 +31,7 @@ contract QswapTokenCreator is IERC20 {
         isBurnable = _isBurnable;
         name = _name;  
         symbol = _symbol;  
-        totalSupply = initialSupply * 10 ** uint256(decimals);  
+        totalSupply = initialSupply * (10 ** uint256(decimals));  
         balanceOf[msg.sender] = totalSupply;  
     }
 

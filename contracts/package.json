@@ -1,3 +1,9 @@
 {
-  "name": "qswap"
+  "name": "qswap",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "ethers": "^5.8.0",
+    "hardhat": "^2.24.0",
+    "hardhat-contract-sizer": "^2.10.0"
+  }
 }

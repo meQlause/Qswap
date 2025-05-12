@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "./tokenBalanceUpdater.sol";
-import "../libs/ABDKmath64x64.sol";
+import "../libs/qswapSqrt.sol";
 
 
 contract QswapConstantProductPair {
-    using ABDKMath64x64 for int128;
+    using qswapSqrt for uint256;
 
     QswapTokenCreator public tokenX;
     QswapTokenCreator public tokenY;
     QswapTokenCreator public liquidityToken;
     uint256 public feePercentage; 
     uint256 public feeDenominator = 10000; 
-    uint256 private _reserveX;
-    uint256 private _reserveY;
+    uint256 public _reserveX;
+    uint256 public _reserveY;
     uint256 private _liquidityTokenReserve;
     TokenBalanceUpdater private _tokenBalanceUpdater;
     uint32 private blockTimestampLast;
@@ -24,16 +24,22 @@ contract QswapConstantProductPair {
     event Swap(address indexed sender, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut);
     event AddLiquidity(address indexed sender, uint256 amountX, uint256 amountY, uint256 liquidityMinted);
 
-    constructor(address _tokenX, uint256 _amountTokenX, address _tokenY, uint256 _amountTokenY, uint256 _fee, address tokenBalanceUpdater) {
+    constructor(address _tokenX, uint256 _amountTokenX, address _tokenY, uint256 _amountTokenY, uint256 _fee, address tokenBalanceUpdater, address _liquidityToken) {
         tokenX = QswapTokenCreator(_tokenX);
         tokenY = QswapTokenCreator(_tokenY);
+        _reserveX = _amountTokenX;
+        _reserveY = _amountTokenY;
         feePercentage = _fee;
-        liquidityToken = new QswapTokenCreator(0, string(abi.encodePacked(tokenX.name(), tokenY.name())), "QSLT", true, true);
-        emit LiquidityTokenCreated(address(tokenX), address(tokenY), address(liquidityToken));
-        _tokenBalanceUpdater = TokenBalanceUpdater(tokenBalanceUpdater);
 
-        uint256 liquidityTokenAmount = _initGetLiquidityTokenAmount(_amountTokenX, _amountTokenY);
-        liquidityToken.mint(msg.sender, liquidityTokenAmount);
+        liquidityToken =  QswapTokenCreator(_liquidityToken);
+        emit LiquidityTokenCreated(address(tokenX), address(tokenY), address(liquidityToken));
+        
+        _tokenBalanceUpdater = TokenBalanceUpdater(tokenBalanceUpdater);
+        _tokenBalanceUpdater.updateBalance(_tokenX, tx.origin, address(this), _amountTokenX);
+        _tokenBalanceUpdater.updateBalance(_tokenY, tx.origin, address(this), _amountTokenY);
+        uint256 liquidityTokenAmount = qswapSqrt.sqrt(_amountTokenX * _amountTokenY);
+        _liquidityTokenReserve = liquidityTokenAmount;
+        liquidityToken.mint(tx.origin, liquidityTokenAmount);
     }
 
     function getReserves() external view returns (uint256, uint256) {
@@ -41,8 +47,8 @@ contract QswapConstantProductPair {
     }
 
     function swap(address addressTokenToswap, uint256 amountToSwap, bool isReverse, address to) external {
-        require(amountToSwap > 0, "INSUFFICIENT_INPUT_AMOUNT");
-        require(to != address(0), "INVALID_RECIPIENT");
+        require(amountToSwap > 0, "A0");  // INSUFFICIENT_INPUT_AMOUNT
+        require(to != address(0), "A1");  // INVALID_RECIPIENT
         
         (
             uint256 k, uint256 reserve2, 
@@ -51,56 +57,61 @@ contract QswapConstantProductPair {
         ) 
         = _getSwapOptions(amountToSwap, isReverse, addressTokenToswap);
 
-        require(k > 0, "INSUFFICIENT_LIQUIDITY");
+        require(k > 0, "B0");  // INSUFFICIENT_LIQUIDITY
         uint256 amountToGet = reserve2 - (k / (reserve2 + effectiveAmountToSwap));
-        require(amountToGet > 0, "INSUFFICIENT_OUTPUT_AMOUNT");
+        require(amountToGet > 0, "B1");  // INSUFFICIENT_OUTPUT_AMOUNT
 
         _updateBalance(give, to, address(this), effectiveAmountToSwap);
+        
+        IERC20(get).approve(address(_tokenBalanceUpdater), amountToGet);
         _updateBalance(get, address(this), to, amountToGet);
         _updateReserves();
+
         emit Swap(msg.sender, give, get, effectiveAmountToSwap, amountToGet);
     }
 
     function addLiquidity(uint256 amount, bool isReverse) external {
-        require(amount > 0, "INSUFFICIENT_INPUT_AMOUNT");
+        require(amount > 0, "A0");  // INSUFFICIENT_INPUT_AMOUNT
         
         (
             uint256 x, uint256 y,
             address xAddress, address yAddress
         ) = _getLiquidityOptions(isReverse);
         
-        require(x > 0 && y > 0, "INSUFFICIENT_LIQUIDITY");
+        require(x > 0 && y > 0, "B0");  // INSUFFICIENT_LIQUIDITY
         uint256 amount_needed = (x * amount) / y;
-        require(amount_needed > 0, "INSUFFICIENT_LIQUIDITY_AMOUNT");
+        require(amount_needed > 0, "B2");  // INSUFFICIENT_LIQUIDITY_AMOUNT
 
-        _updateBalance(xAddress, msg.sender, address(this), amount_needed);
-        _updateBalance(yAddress, msg.sender, address(this), amount);
+        _updateBalance(xAddress, tx.origin, address(this), amount_needed);
+        _updateBalance(yAddress, tx.origin, address(this), amount);
 
         uint256 liquidityBefore = liquidityToken.totalSupply();
-        _mintLiquidityToken(msg.sender, amount_needed, amount, isReverse);
+        _mintLiquidityToken(tx.origin, amount_needed, amount, isReverse);
         uint256 liquidityMinted = liquidityToken.totalSupply() - liquidityBefore;
         _updateReserves();
-        emit AddLiquidity(msg.sender, amount_needed, amount, liquidityMinted);
+        emit AddLiquidity(tx.origin, amount_needed, amount, liquidityMinted);
     }
 
     function removeLiquidity(uint256 liquidity) external {
-        require(liquidity > 0, "INSUFFICIENT_LIQUIDITY_BURNED");
-        require(liquidityToken.balanceOf(msg.sender) >= liquidity, "INSUFFICIENT_LIQUIDITY_BALANCE");
+        require(liquidity > 0, "C0");  // INSUFFICIENT_LIQUIDITY_BURNED
+        require(liquidityToken.balanceOf(tx.origin) >= liquidity, "C1");  // INSUFFICIENT_LIQUIDITY_BALANCE
 
         uint256 x = _reserveX;
         uint256 y = _reserveY;
-        require(x > 0 && y > 0, "INSUFFICIENT_LIQUIDITY");
+        require(x > 0 && y > 0, "B0");  // INSUFFICIENT_LIQUIDITY
 
         uint256 amount0 = (x * liquidity) / _liquidityTokenReserve;
         uint256 amount1 = (y * liquidity) / _liquidityTokenReserve;
-        require(amount0 > 0 && amount1 > 0, "INSUFFICIENT_LIQUIDITY_BURNED");
+        require(amount0 > 0 && amount1 > 0, "C0");  // INSUFFICIENT_LIQUIDITY_BURNED
 
-        liquidityToken.transferFrom(msg.sender, address(this), liquidity);
+        liquidityToken.transferFrom(tx.origin, address(this), liquidity);
         liquidityToken.burn(liquidity);
         _liquidityTokenReserve -= liquidity;
 
-        _updateBalance(address(tokenX), address(this), msg.sender, amount0);
-        _updateBalance(address(tokenY), address(this), msg.sender, amount1);
+        IERC20(address(tokenX)).approve(address(_tokenBalanceUpdater), amount0);
+        IERC20(address(tokenY)).approve(address(_tokenBalanceUpdater), amount1);
+        _updateBalance(address(tokenX), address(this), tx.origin, amount0);
+        _updateBalance(address(tokenY), address(this), tx.origin, amount1);
 
         _updateReserves();
         emit RemoveLiquidity(msg.sender, amount0, amount1, liquidity);
@@ -145,16 +156,6 @@ contract QswapConstantProductPair {
     function _updateReserves() private {
         _reserveX = _tokenBalanceUpdater.getTokenBalance(address(tokenX), address(this));
         _reserveY = _tokenBalanceUpdater.getTokenBalance(address(tokenY), address(this));
-    }
-
-    function _initGetLiquidityTokenAmount(uint256 xAmount, uint256 yAmount) private pure returns (uint256 amount) {
-        require(xAmount > 0 && yAmount > 0, "Both amounts must be > 0");
-
-        int128 x64 = ABDKMath64x64.fromUInt(xAmount);
-        int128 y64 = ABDKMath64x64.fromUInt(yAmount);
-        int128 product64 = x64.mul(y64);
-        int128 sqrt64 = ABDKMath64x64.sqrt(product64);
-        return ABDKMath64x64.toUInt(sqrt64);
     }
 
     function _mintLiquidityToken(address to, uint256 xAmount, uint256 yAmount, bool isReverse) private {
