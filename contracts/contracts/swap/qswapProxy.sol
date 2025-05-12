@@ -4,6 +4,7 @@ import "./qswapPair.sol";
 
 contract QswapProxy {
     TokenBalanceUpdater private _tokenBalanceUpdaterContract;
+    mapping(address => address) public getLTPair;
     mapping(address => mapping(address => address)) public getPair;
 
 
@@ -45,8 +46,10 @@ contract QswapProxy {
         return true;
     }
 
-    function removeLiquidity(address tokenX, address tokenY, uint256 liquidity) external returns (bool isSuccess) {
-        // TO DO : implement removing liquidity logic
+    function removeLiquidity(address liquidityTokenAddress, uint256 amount) external returns (bool isSuccess) {
+        QswapConstantProductPair pairContract = QswapConstantProductPair(getLTPair[liquidityTokenAddress]);
+        pairContract.removeLiquidity(amount);
+        return true;
     }
 
 

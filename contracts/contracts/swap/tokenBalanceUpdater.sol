@@ -14,4 +14,5 @@ contract TokenBalanceUpdater {
         IERC20 token = IERC20(tokenAdress);
         return token.balanceOf(account);
     }
+    
 }
