@@ -1,1 +1,7 @@
 QswapTokenCreator.dbg.json
+IERC20.dbg.json
+QswapConstantProductPair.dbg.json
+QswapProxy.dbg.json
+TokenBalanceUpdater.dbg.json
+ABDKMath64x64.dbg.json
+QswapPair.dbg.json
