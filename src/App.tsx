@@ -5,7 +5,7 @@ import SwapCard from './components/Swap/SwapCard';
 import PoolsCard from './components/Pools/PoolsCard';
 import LoadingScreen from './components/Loading/LoadingScreen';
 import { WalletProvider } from './context/WalletContext';
-import CreateToken from './components/Token/CreateToken';
+import CreateToken from './components/Token/Token';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertCircle } from 'lucide-react';
 
