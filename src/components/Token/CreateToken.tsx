@@ -3,20 +3,13 @@ import { useWallet } from "../../context/WalletContext";
 import createToken from '../../utils/tokenDeploy';
 import ConnectButton from '../UI/ConnectButton';
 import { motion } from "framer-motion";
-
-interface ModalProps {
-    isOpen: boolean;
-    onClose?: () => void;
-    type: 'success' | 'error';
-    message: string;
-    tokenAddress?: string;
-}
+import { ModalProps } from "../../interfaces/Interfaces";
 
 interface Props {
     setModalState: React.Dispatch<React.SetStateAction<ModalProps>>;
 }
 
-const CreateToken: React.FC<any> = ({ setModalState }: Props) => {
+const CreateToken: React.FC<Props> = ({ setModalState }) => {
     const { account } = useWallet();
     const [name, setName] = useState('');
     const [symbol, setSymbol] = useState('');

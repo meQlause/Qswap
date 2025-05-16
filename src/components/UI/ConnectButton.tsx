@@ -63,7 +63,9 @@ const ConnectButton: React.FC<ConnectButtonProps> = ({ className = '' }) => {
                         <ChevronDown className={`ml-2 w-4 h-4 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
                     </>
                 ) : (
-                    'Connect Wallet'
+                    <div className='whitespace-nowrap'>
+                        Connect Wallet
+                    </div>
                 )}
             </button>
 

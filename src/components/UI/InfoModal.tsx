@@ -1,13 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-interface InfoModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    title?: string;
-    message: string;
-}
+import { ModalProps } from '../../interfaces/Interfaces';
 
 const modalVariants = {
     hidden: { opacity: 0, scale: 0.95 },
@@ -15,7 +9,7 @@ const modalVariants = {
     exit: { opacity: 0, scale: 0.95 },
 };
 
-const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose, title = 'Notice', message }) => {
+const InfoModal: React.FC<ModalProps> = ({ isOpen, onClose, title = 'Notice', message }) => {
     return (
         <AnimatePresence>
             {isOpen && (

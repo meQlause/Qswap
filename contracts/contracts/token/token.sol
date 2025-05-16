@@ -15,6 +15,8 @@ contract QswapTokenCreator is IERC20 {
     bool public isMintable;
     bool public isBurnable;
     uint256 public totalSupply;
+    uint256 public holderCount;
+    mapping(address => bool) private _isKnown;
     uint8 public decimals = 18;  
 
     mapping(address => uint256) public balanceOf;
@@ -32,11 +34,15 @@ contract QswapTokenCreator is IERC20 {
         name = _name;  
         symbol = _symbol;  
         totalSupply = initialSupply * (10 ** uint256(decimals));  
+        _updateHolder(msg.sender);
+        
         balanceOf[msg.sender] = totalSupply;  
     }
 
     function transfer(address recipient, uint256 amount) public returns (bool) {
         require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+        _updateHolder(recipient);
+        
         balanceOf[msg.sender] -= amount;
         balanceOf[recipient] += amount;
         emit Transfer(msg.sender, recipient, amount);
@@ -52,6 +58,7 @@ contract QswapTokenCreator is IERC20 {
     function transferFrom(address sender, address recipient, uint256 amount) public returns (bool) {
         require(balanceOf[sender] >= amount, "Insufficient balance");
         require(allowance[sender][msg.sender] >= amount, "Allowance exceeded");
+        _updateHolder(recipient);
 
         balanceOf[sender] -= amount;
         balanceOf[recipient] += amount;
@@ -78,5 +85,13 @@ contract QswapTokenCreator is IERC20 {
         balanceOf[msg.sender] -= amount;  
         emit Burn(msg.sender, amount);  
         return true;
+    }
+
+    function _updateHolder(address user) internal {
+        if (!_isKnown[user]) {
+            _isKnown[user] = true;
+            holderCount += 1;
+
+        }
     }
 }

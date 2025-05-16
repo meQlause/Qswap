@@ -107,11 +107,9 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
                 )}
               </AnimatePresence>
             </div>
-            {account ?
-              <div className='md:block hidden bg-pink-500 hover:bg-pink-400 transition-colors p-1.5 rounded-xl'>
-                <ConnectButton />
-              </div> : ''
-            }
+            <div className='md:block hidden bg-pink-500 hover:bg-pink-400 transition-colors p-1.5 rounded-xl'>
+              <ConnectButton />
+            </div>
           </div>
         </div>
       </header>

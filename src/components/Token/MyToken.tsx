@@ -2,29 +2,84 @@ import { motion } from "framer-motion"
 import { ArrowUpDown, Plus, Search } from "lucide-react"
 import ConnectButton from "../UI/ConnectButton"
 import { useWallet } from "../../context/WalletContext";
+import { useEffect, useState } from "react";
+import { ModalProps, Token } from "../../interfaces/Interfaces";
+import Modal from "../UI/Modal";
+import { getTokenInfo } from "../../utils/tokenDetails";
 
-interface Token {
-    id: number;
-    name: string;
-    symbol: string;
-    totalSupply: string;
-    holders: number;
-}
 
 const MyToken: React.FC = () => {
     const { account } = useWallet();
+    const [searchTerm, setSearchTerm] = useState("");
+    const [tokens, setTokens] = useState<Token[]>([])
+    const [modalMessage, setModalMessage] = useState<ModalProps>({
+        isOpen: false,
+        message: '',
+    });
 
-    const myTokens: Token[] = [
-        { id: 1, name: 'My Token 1', symbol: 'MT1', totalSupply: '1,000,000', holders: 150 },
-        { id: 2, name: 'My Token 2', symbol: 'MT2', totalSupply: '500,000', holders: 75 },
-        { id: 3, name: 'My Token 3', symbol: 'MT3', totalSupply: '2,000,000', holders: 300 },
-        { id: 4, name: 'My Token 3', symbol: 'MT3', totalSupply: '2,000,000', holders: 300 },
-        { id: 5, name: 'My Token 3', symbol: 'MT3', totalSupply: '2,000,000', holders: 300 },
-        { id: 6, name: 'My Token 3', symbol: 'MT3', totalSupply: '2,000,000', holders: 300 },
-        { id: 7, name: 'My Token 3', symbol: 'MT3', totalSupply: '2,000,000', holders: 300 },
-    ];
 
-    return (
+    const addToken = async () => {
+        if (!account) {
+            setModalMessage({
+                isOpen: true,
+                type: 'error',
+                message: 'Connet Your Wallet First!',
+            })
+            return
+        }
+
+        const tokenToAdd = await getTokenInfo(searchTerm);
+        if (!tokenToAdd) {
+            setModalMessage({
+                isOpen: true,
+                type: 'error',
+                message: 'Address Can Not Be Found!',
+                tokenAddress: searchTerm
+            })
+            return
+        }
+
+        const alreadyExists = tokens.some(t => t.address === tokenToAdd.address);
+        if (alreadyExists) {
+            setModalMessage({
+                isOpen: true,
+                type: 'error',
+                message: 'Address Has Already Been Addeed!',
+                tokenAddress: searchTerm
+            })
+            return
+        }
+
+        tokens.push(tokenToAdd)
+        localStorage.setItem(account, JSON.stringify(tokens));
+        setModalMessage({
+            isOpen: true,
+            type: 'success',
+            message: 'Address Was Succesfully Being Addeed!',
+            tokenAddress: searchTerm
+        })
+    }
+
+    useEffect(() => {
+        const stored = localStorage.getItem(account ? account : '');
+        if (stored) {
+            setTokens(JSON.parse(stored));
+        }
+
+    }, [tokens]);
+
+
+    return (<div>
+
+        {modalMessage.isOpen && (
+            <Modal
+                isOpen={true}
+                type={modalMessage.type}
+                message={modalMessage.message}
+                tokenAddress={modalMessage.tokenAddress}
+                onClose={() => setModalMessage({ isOpen: false, message: '' })}
+            />
+        )}
         <motion.div
             key="my-tokens"
             initial={{ opacity: 0, y: 20 }}
@@ -42,15 +97,23 @@ const MyToken: React.FC = () => {
                                 type="text"
                                 placeholder="Search by token name or address"
                                 className="w-full bg-[#282c34] text-white rounded-2xl pl-10 pr-4 py-3 text-sm outline-none"
+                                onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
                         <button className="bg-[#282c34] hover:bg-[#31353e] transition-colors text-white/80 font-medium py-3 px-4 rounded-2xl text-sm flex items-center justify-center">
                             <ArrowUpDown className="w-4 h-4 mr-2" />
                             Sort by
                         </button>
+                        <button
+                            disabled={searchTerm === ""}
+                            className="bg-[#282c34] disabled:bg-[#1e1f24] disabled:text-white/30 hover:bg-[#31353e] transition-colors text-white/80 font-medium py-3 px-4 rounded-2xl text-sm flex items-center justify-center"
+                            onClick={() => addToken()}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Token Address
+                        </button>
                     </div>
                     <div className="space-y-4 h-[400px] overflow-y-auto custom-scrollbar">
-                        {myTokens.map((token, index) => (
+                        {tokens.map((token, index) => (
                             <motion.div
                                 key={token.id}
                                 initial={{ opacity: 0, y: 20 }}
@@ -115,6 +178,7 @@ const MyToken: React.FC = () => {
                 </div>
             )}
         </motion.div>
+    </div>
     )
 }
 
