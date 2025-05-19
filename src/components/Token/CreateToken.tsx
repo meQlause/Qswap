@@ -3,13 +3,15 @@ import { useWallet } from "../../context/WalletContext";
 import createToken from '../../utils/tokenDeploy';
 import ConnectButton from '../UI/ConnectButton';
 import { motion } from "framer-motion";
-import { ModalProps } from "../../interfaces/Interfaces";
+import { ModalProps, Token } from "../../interfaces/Interfaces";
+import { getTokenInfo } from "../../utils/tokenDetails";
 
 interface Props {
-    setModalState: React.Dispatch<React.SetStateAction<ModalProps>>;
+    setModalMessage: React.Dispatch<React.SetStateAction<ModalProps>>;
+    handleTabChange: (tab: "create-token" | "my-tokens") => void;
 }
 
-const CreateToken: React.FC<Props> = ({ setModalState }) => {
+const CreateToken: React.FC<Props> = ({ setModalMessage, handleTabChange }) => {
     const { account } = useWallet();
     const [name, setName] = useState('');
     const [symbol, setSymbol] = useState('');
@@ -24,14 +26,28 @@ const CreateToken: React.FC<Props> = ({ setModalState }) => {
         setIsSubmitting(true);
         try {
             const tokenAddress = await createToken(initialSupply, name, symbol, mintable, burnable);
-            setModalState({
+            const stored = localStorage.getItem(account ? account : '');
+            if (stored) {
+                const tokenList: Token[] = JSON.parse(stored);
+                const tokenToAdd = await getTokenInfo(tokenAddress);
+                if (!tokenToAdd) {
+                    throw new Error("tokenToAdd is required");
+                }
+                if (!account) {
+                    throw new Error("Account is required");
+                }
+                tokenList.push(tokenToAdd)
+                localStorage.setItem(account, JSON.stringify(tokenList));
+            }
+
+            setModalMessage({
                 isOpen: true,
                 type: 'success',
                 message: 'Your token has been created successfully!',
                 tokenAddress,
             });
         } catch (error) {
-            setModalState({
+            setModalMessage({
                 isOpen: true,
                 type: 'error',
                 message: 'Failed to create token. Please try again.',

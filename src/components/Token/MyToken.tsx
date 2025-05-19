@@ -50,8 +50,11 @@ const MyToken: React.FC = () => {
             return
         }
 
-        tokens.push(tokenToAdd)
-        localStorage.setItem(account, JSON.stringify(tokens));
+        const updatedTokens = [...tokens, tokenToAdd];
+
+        setTokens(updatedTokens);
+        localStorage.setItem(account, JSON.stringify(updatedTokens));
+        
         setModalMessage({
             isOpen: true,
             type: 'success',
@@ -66,7 +69,7 @@ const MyToken: React.FC = () => {
             setTokens(JSON.parse(stored));
         }
 
-    }, [tokens]);
+    }, [account]);
 
 
     return (<div>
@@ -115,7 +118,7 @@ const MyToken: React.FC = () => {
                     <div className="space-y-4 h-[400px] overflow-y-auto custom-scrollbar">
                         {tokens.map((token, index) => (
                             <motion.div
-                                key={token.id}
+                                key={index}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.3, delay: index * 0.1 }}

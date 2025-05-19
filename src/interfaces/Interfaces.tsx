@@ -1,6 +1,6 @@
 export interface ModalProps {
     isOpen: boolean;
-    onClose?: () => void;
+    onClose?: any;
     type?: 'success' | 'error';
     title?: string;
     message: string;
