@@ -21,7 +21,15 @@ const createToken = async (initialSupply: number, name: string, symbol: string, 
 
     const factory = new ethers.ContractFactory(QswapTokenCreator.abi, QswapTokenCreator.bytecode, signer);
 
-    const contract = await factory.deploy(initialSupply, name, symbol, isMintable, isBurnable);
+    const contract = await factory.deploy(
+        initialSupply,
+        name
+            .split(" ")
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" "),
+        symbol.toUpperCase(),
+        isMintable,
+        isBurnable);
     await contract.waitForDeployment();
 
     const deployedAddress = await contract.getAddress();

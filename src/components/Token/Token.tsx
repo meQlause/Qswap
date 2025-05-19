@@ -105,7 +105,7 @@ const Token: React.FC = () => {
                         >
                             <div className="p-4">
                                 {activeTab === 'create-token' ? (
-                                    <CreateToken setModalMessage={setModalState} handleTabChange={handleTabChange} />
+                                    <CreateToken setModalMessage={setModalState} />
                                 ) : <MyToken />}
                             </div>
                         </motion.div>

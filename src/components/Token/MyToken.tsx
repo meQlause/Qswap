@@ -1,5 +1,5 @@
-import { motion } from "framer-motion"
-import { ArrowUpDown, Plus, Search } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { ArrowUpDown, Plus, Search, Trash2 } from "lucide-react"
 import ConnectButton from "../UI/ConnectButton"
 import { useWallet } from "../../context/WalletContext";
 import { useEffect, useState } from "react";
@@ -12,6 +12,8 @@ const MyToken: React.FC = () => {
     const { account } = useWallet();
     const [searchTerm, setSearchTerm] = useState("");
     const [tokens, setTokens] = useState<Token[]>([])
+    const [deletingTokens, setDeletingTokens] = useState<Set<string>>(new Set());
+
     const [modalMessage, setModalMessage] = useState<ModalProps>({
         isOpen: false,
         message: '',
@@ -54,7 +56,7 @@ const MyToken: React.FC = () => {
 
         setTokens(updatedTokens);
         localStorage.setItem(account, JSON.stringify(updatedTokens));
-        
+
         setModalMessage({
             isOpen: true,
             type: 'success',
@@ -62,6 +64,26 @@ const MyToken: React.FC = () => {
             tokenAddress: searchTerm
         })
     }
+
+    const handleDelete = (address: string) => {
+        console.log(tokens)
+        console.log(deletingTokens)
+
+        setDeletingTokens(prev => new Set(prev).add(address));
+    };
+
+    const handleAnimationComplete = () => {
+        const [address] = [...deletingTokens];
+
+        if (deletingTokens.has(address)) {
+            const updatedTokenList = tokens.filter(t => t.address !== address)
+            setTokens(updatedTokenList);
+            setDeletingTokens(new Set<string>);
+            if (account) {
+                localStorage.setItem(account, JSON.stringify(updatedTokenList));
+            }
+        }
+    };
 
     useEffect(() => {
         const stored = localStorage.getItem(account ? account : '');
@@ -116,23 +138,41 @@ const MyToken: React.FC = () => {
                         </button>
                     </div>
                     <div className="space-y-4 h-[400px] overflow-y-auto custom-scrollbar">
-                        {tokens.map((token, index) => (
-                            <motion.div
-                                key={index}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3, delay: index * 0.1 }}
-                                className="bg-[#282c34] rounded-xl p-4"
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-white">{token.name}</span>
-                                    <span className="text-white/60">{token.symbol}</span>
-                                </div>
-                                <div className="text-sm text-white/60">
-                                    Total Supply: {token.totalSupply} | Holders: {token.holders}
-                                </div>
-                            </motion.div>
-                        ))}
+                        <AnimatePresence
+                            onExitComplete={() =>
+                                handleAnimationComplete()
+                            }
+                        >
+                            {tokens.map(token => (
+                                !deletingTokens.has(token.address) && (
+                                    <motion.div
+                                        key={token.address}
+                                        className="bg-[#282c34] rounded-xl p-4"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, x: 100 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-white">{token.name}</span>
+                                            <span className="text-white/60">{token.symbol}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm text-white/60">
+                                                Total Supply: {token.totalSupply} | Holders: {token.holders}
+                                            </div>
+                                            <button
+                                                onClick={() => handleDelete(token.address)}
+                                                className=" hover:text-white transition-colors"
+                                                title="Delete Token"
+                                            >
+                                                <Trash2 className="w-4 h-4 text-white/60 hover:text-white" />
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )
+                            ))}
+                        </AnimatePresence>
                     </div>
                 </div>
             ) : (

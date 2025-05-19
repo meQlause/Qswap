@@ -8,10 +8,9 @@ import { getTokenInfo } from "../../utils/tokenDetails";
 
 interface Props {
     setModalMessage: React.Dispatch<React.SetStateAction<ModalProps>>;
-    handleTabChange: (tab: "create-token" | "my-tokens") => void;
 }
 
-const CreateToken: React.FC<Props> = ({ setModalMessage, handleTabChange }) => {
+const CreateToken: React.FC<Props> = ({ setModalMessage }) => {
     const { account } = useWallet();
     const [name, setName] = useState('');
     const [symbol, setSymbol] = useState('');
