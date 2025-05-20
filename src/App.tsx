@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer';
 import SwapCard from './components/Swap/SwapCard';
-import PoolsCard from './components/Pools/PoolsCard';
+import PoolsCard from './components/Pools/Pool';
 import LoadingScreen from './components/Loading/LoadingScreen';
 import { WalletProvider } from './context/WalletContext';
 import CreateToken from './components/Token/Token';

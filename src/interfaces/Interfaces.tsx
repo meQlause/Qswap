@@ -7,6 +7,13 @@ export interface ModalProps {
     tokenAddress?: string;
 }
 
+export interface Pool {
+    id: number;
+    pair: string;
+    fee: string;
+    tvl: string;
+}
+
 export interface Token {
     id?: number;
     name: string;
