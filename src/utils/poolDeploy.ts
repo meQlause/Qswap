@@ -9,7 +9,13 @@ declare global {
 }
 const proxyAbi = QswapProxy.abi;
 
-const deployNewPool = async (proxyAddress: string, xAddress: string, xAmount: string, yAddress: string, yAmount: string, fee: number) => {
+const deployNewPool = async (
+    proxyAddress: string,
+    xAddress: string,
+    xAmount: string,
+    yAddress: string,
+    yAmount: string, fee: number): Promise<string> => {
+
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
     const proxy = new ethers.Contract(proxyAddress, proxyAbi, signer);
@@ -24,6 +30,18 @@ const deployNewPool = async (proxyAddress: string, xAddress: string, xAmount: st
 
     const receipt = await tx.wait();
     console.log("Pair created:", receipt);
+    const event = receipt.events?.find((e: any) => e.event === "PairCreated");
+
+    if (event) {
+        const { tokenX, tokenY, pair } = event.args;
+        console.log("Pair created:");
+        console.log("tokenX:", tokenX);
+        console.log("tokenY:", tokenY);
+        console.log("pair address:", pair);
+        return pair
+    } else {
+        throw new Error("No PairCreated event found")
+    }
 }
 
 export default deployNewPool;

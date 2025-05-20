@@ -1,17 +1,27 @@
-import React, { useState, useRef, TouchEvent } from 'react';
-import { Plus, Search, ArrowUpDown, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import React, { useState, useRef, TouchEvent, useEffect } from 'react';
+import { Plus, Search, ArrowUpDown, ChevronLeft, ChevronRight, X, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import MyPools from './MyPools';
 import Pools from './Pools';
+import { useWallet } from '../../context/WalletContext';
+import { Token } from '../../interfaces/Interfaces';
 
 
 
 const PoolsCard: React.FC = () => {
+  const { account } = useWallet()
+  const [tokens, setTokens] = useState<Token[]>([])
   const [activeTab, setActiveTab] = useState<'pools' | 'my-pools'>('pools');
   const [showNewLiquidityModal, setShowNewLiquidityModal] = useState(false);
   const [showTabIndicator, setShowTabIndicator] = useState(false);
+  const [selectedTokenX, setSelectedTokenX] = useState<Token | null>(null);
+  const [dropdownOpenX, setDropdownOpenX] = useState(false);
+  const [selectedTokenY, setSelectedTokenY] = useState<Token | null>(null);
+  const [dropdownOpenY, setDropdownOpenY] = useState(false);
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
+
+
 
   const handleTabChange = (tab: 'pools' | 'my-pools') => {
     setShowTabIndicator(true);
@@ -41,6 +51,31 @@ const PoolsCard: React.FC = () => {
       }
     }
   };
+
+  useEffect(() => {
+    const stored = localStorage.getItem(account ? account : '');
+    if (stored) {
+      setTokens(JSON.parse(stored));
+    }
+
+  }, [account]);
+
+  useEffect(() => {
+    console.log('Current tokens:', tokens);
+  }, [tokens]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.token-dropdown')) {
+        setDropdownOpenX(false);
+        setDropdownOpenY(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="relative w-full max-w-4xl mx-auto">
@@ -106,6 +141,7 @@ const PoolsCard: React.FC = () => {
                     Sort by
                   </button>
                   <button
+                    disabled={account ? false : true}
                     className="bg-[#282c34] disabled:bg-[#1e1f24] disabled:text-white/30 hover:bg-[#31353e] transition-colors text-white/80 font-medium py-3 px-4 rounded-2xl text-sm flex items-center justify-center"
                     onClick={() => setShowNewLiquidityModal(true)}>
                     <Plus className="w-4 h-4 mr-2" />
@@ -164,9 +200,40 @@ const PoolsCard: React.FC = () => {
                         placeholder="0.0"
                         className="bg-[#282c34] text-white rounded-xl px-4 py-2 w-full outline-none"
                       />
-                      <button className="bg-[#282c34] hover:bg-[#31353e] text-white px-4 py-2 rounded-xl text-sm">
-                        ETH
-                      </button>
+                      <div className="relative token-dropdown">
+                        <button
+                          className="bg-[#282c34] hover:bg-[#31353e] text-white px-4 py-2 rounded-xl text-sm w-full text-left flex items-center justify-between"
+                          onClick={() => setDropdownOpenX(prev => !prev)}
+                        >
+                          <span>{selectedTokenX?.symbol || 'Select'}</span>
+                          <ChevronDown className="w-4 h-4 ml-2" />
+                        </button>
+
+                        {dropdownOpenX && (
+                          <div className="absolute top-full left-0 right-0 bg-[#212429] mt-1 rounded-xl shadow-lg z-[100] max-h-60 overflow-auto border border-[#2c2f36]">
+                            {tokens.length === 0 ? (
+                              <div className="px-4 py-2 text-white/60 text-sm">No tokens available</div>
+                            ) : tokens.filter(token => token !== selectedTokenX && token !== selectedTokenY).length === 0 ? (
+                              <div className="px-4 py-2 text-white/60 text-sm">All tokens have been selected</div>
+                            ) : (
+                              tokens
+                                .filter(token => token !== selectedTokenX && token !== selectedTokenY)
+                                .map((token) => (
+                                  <button
+                                    key={token.address}
+                                    onClick={() => {
+                                      setSelectedTokenX(token);
+                                      setDropdownOpenX(false);
+                                    }}
+                                    className="w-full text-left px-4 py-2 hover:bg-[#2c2f36] text-white text-sm flex items-center"
+                                  >
+                                    {token.symbol}
+                                  </button>
+                                ))
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -184,9 +251,40 @@ const PoolsCard: React.FC = () => {
                         placeholder="0.0"
                         className="bg-[#282c34] text-white rounded-xl px-4 py-2 w-full outline-none"
                       />
-                      <button className="bg-[#282c34] hover:bg-[#31353e] text-white px-4 py-2 rounded-xl text-sm">
-                        USDC
-                      </button>
+                      <div className="relative token-dropdown">
+                        <button
+                          className="bg-[#282c34] hover:bg-[#31353e] text-white px-4 py-2 rounded-xl text-sm w-full text-left flex items-center justify-between"
+                          onClick={() => setDropdownOpenY(prev => !prev)}
+                        >
+                          <span>{selectedTokenY?.symbol || 'Select'}</span>
+                          <ChevronDown className="w-4 h-4 ml-2" />
+                        </button>
+
+                        {dropdownOpenY && (
+                          <div className="absolute top-full left-0 right-0 bg-[#212429] mt-1 rounded-xl shadow-lg z-[100] max-h-60 overflow-auto border border-[#2c2f36]">
+                            {tokens.length === 0 ? (
+                              <div className="px-4 py-2 text-white/60 text-sm">No tokens available</div>
+                            ) : tokens.filter(token => token !== selectedTokenX && token !== selectedTokenY).length === 0 ? (
+                              <div className="px-4 py-2 text-white/60 text-sm">All tokens have been selected</div>
+                            ) : (
+                              tokens
+                                .filter(token => token !== selectedTokenX && token !== selectedTokenY)
+                                .map((token) => (
+                                  <button
+                                    key={token.address}
+                                    onClick={() => {
+                                      setSelectedTokenY(token);
+                                      setDropdownOpenY(false);
+                                    }}
+                                    className="w-full text-left px-4 py-2 hover:bg-[#2c2f36] text-white text-sm flex items-center"
+                                  >
+                                    {token.symbol}
+                                  </button>
+                                ))
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 

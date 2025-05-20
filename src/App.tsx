@@ -6,7 +6,7 @@ import PoolsCard from './components/Pools/Pool';
 import LoadingScreen from './components/Loading/LoadingScreen';
 import { WalletProvider } from './context/WalletContext';
 import CreateToken from './components/Token/Token';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, AlertCircle } from 'lucide-react';
 
 const WelcomeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
