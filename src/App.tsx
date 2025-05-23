@@ -9,6 +9,26 @@ import CreateToken from './components/Token/Token';
 import { motion } from 'framer-motion';
 import { X, AlertCircle } from 'lucide-react';
 
+// Add styles to the global stylesheet
+const style = document.createElement('style');
+style.textContent = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #211429;
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #2c2f36;
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #31353e;
+  }
+`;
+document.head.appendChild(style);
+
 const WelcomeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   if (!isOpen) return null;
 

@@ -23,8 +23,6 @@ const deployProxyContract = async () => {
     await contract.waitForDeployment();
 
     const deployedAddress = await contract.getAddress();
-    console.log("Contract deployed to address:", deployedAddress);
-    console.log("Contract deployed successfully!");
 
     return deployedAddress;
 };

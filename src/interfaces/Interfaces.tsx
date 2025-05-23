@@ -12,6 +12,8 @@ export interface Pool {
     pair: string;
     fee: string;
     tvl: string;
+    tokenX: string;
+    tokenY: string;
 }
 
 export interface Token {
@@ -22,3 +24,5 @@ export interface Token {
     holders: number;
     address: string
 }
+
+export interface handleTabChange { handleTabChange: (tab: "pools" | "my-pools") => void }

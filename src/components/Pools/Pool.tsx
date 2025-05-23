@@ -6,8 +6,6 @@ import Pools from './Pools';
 import { useWallet } from '../../context/WalletContext';
 import { Token } from '../../interfaces/Interfaces';
 
-
-
 const PoolsCard: React.FC = () => {
   const { account } = useWallet()
   const [tokens, setTokens] = useState<Token[]>([])
@@ -20,8 +18,6 @@ const PoolsCard: React.FC = () => {
   const [dropdownOpenY, setDropdownOpenY] = useState(false);
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
-
-
 
   const handleTabChange = (tab: 'pools' | 'my-pools') => {
     setShowTabIndicator(true);
@@ -153,7 +149,7 @@ const PoolsCard: React.FC = () => {
                   {activeTab === 'pools' ?
                     <Pools />
                     :
-                    <MyPools />
+                    <MyPools handleTabChange={handleTabChange} />
                   }
                 </AnimatePresence>
               </div>
@@ -210,27 +206,29 @@ const PoolsCard: React.FC = () => {
                         </button>
 
                         {dropdownOpenX && (
-                          <div className="absolute top-full left-0 right-0 bg-[#212429] mt-1 rounded-xl shadow-lg z-[100] max-h-60 overflow-auto border border-[#2c2f36]">
-                            {tokens.length === 0 ? (
-                              <div className="px-4 py-2 text-white/60 text-sm">No tokens available</div>
-                            ) : tokens.filter(token => token !== selectedTokenX && token !== selectedTokenY).length === 0 ? (
-                              <div className="px-4 py-2 text-white/60 text-sm">All tokens have been selected</div>
-                            ) : (
-                              tokens
-                                .filter(token => token !== selectedTokenX && token !== selectedTokenY)
-                                .map((token) => (
-                                  <button
-                                    key={token.address}
-                                    onClick={() => {
-                                      setSelectedTokenX(token);
-                                      setDropdownOpenX(false);
-                                    }}
-                                    className="w-full text-left px-4 py-2 hover:bg-[#2c2f36] text-white text-sm flex items-center"
-                                  >
-                                    {token.symbol}
-                                  </button>
-                                ))
-                            )}
+                          <div className="absolute top-full left-0 right-0 bg-[#212429] mt-1 rounded-r shadow-lg z-[100] border border-[#2c2f36]">
+                            <div className={`max-h-[120px] overflow-y-auto ${tokens.filter(token => token !== selectedTokenX && token !== selectedTokenY).length > 3 ? 'custom-scrollbar' : ''}`}>
+                              {tokens.length === 0 ? (
+                                <div className="px-4 py-2 text-white/60 text-sm">No tokens available</div>
+                              ) : tokens.filter(token => token !== selectedTokenX && token !== selectedTokenY).length === 0 ? (
+                                <div className="px-4 py-2 text-white/60 text-sm">All tokens have been selected</div>
+                              ) : (
+                                tokens
+                                  .filter(token => token !== selectedTokenX && token !== selectedTokenY)
+                                  .map((token) => (
+                                    <button
+                                      key={token.address}
+                                      onClick={() => {
+                                        setSelectedTokenX(token);
+                                        setDropdownOpenX(false);
+                                      }}
+                                      className="w-full text-left px-4 py-2 hover:bg-[#2c2f36] hover:rounded-r text-white text-sm flex items-center"
+                                    >
+                                      {token.symbol}
+                                    </button>
+                                  ))
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -261,27 +259,29 @@ const PoolsCard: React.FC = () => {
                         </button>
 
                         {dropdownOpenY && (
-                          <div className="absolute top-full left-0 right-0 bg-[#212429] mt-1 rounded-xl shadow-lg z-[100] max-h-60 overflow-auto border border-[#2c2f36]">
-                            {tokens.length === 0 ? (
-                              <div className="px-4 py-2 text-white/60 text-sm">No tokens available</div>
-                            ) : tokens.filter(token => token !== selectedTokenX && token !== selectedTokenY).length === 0 ? (
-                              <div className="px-4 py-2 text-white/60 text-sm">All tokens have been selected</div>
-                            ) : (
-                              tokens
-                                .filter(token => token !== selectedTokenX && token !== selectedTokenY)
-                                .map((token) => (
-                                  <button
-                                    key={token.address}
-                                    onClick={() => {
-                                      setSelectedTokenY(token);
-                                      setDropdownOpenY(false);
-                                    }}
-                                    className="w-full text-left px-4 py-2 hover:bg-[#2c2f36] text-white text-sm flex items-center"
-                                  >
-                                    {token.symbol}
-                                  </button>
-                                ))
-                            )}
+                          <div className="absolute top-full left-0 right-0 bg-[#212429] mt-1 rounded-r shadow-lg z-[100] border border-[#2c2f36]">
+                            <div className={`max-h-[120px] overflow-y-auto ${tokens.filter(token => token !== selectedTokenX && token !== selectedTokenY).length > 3 ? 'custom-scrollbar' : ''}`}>
+                              {tokens.length === 0 ? (
+                                <div className="px-4 py-2 text-white/60 text-sm">No tokens available</div>
+                              ) : tokens.filter(token => token !== selectedTokenX && token !== selectedTokenY).length === 0 ? (
+                                <div className="px-4 py-2 text-white/60 text-sm">All tokens have been selected</div>
+                              ) : (
+                                tokens
+                                  .filter(token => token !== selectedTokenX && token !== selectedTokenY)
+                                  .map((token) => (
+                                    <button
+                                      key={token.address}
+                                      onClick={() => {
+                                        setSelectedTokenY(token);
+                                        setDropdownOpenY(false);
+                                      }}
+                                      className="w-full text-left px-4 py-2 hover:bg-[#2c2f36] hover:rounded-r text-white text-sm flex items-center"
+                                    >
+                                      {token.symbol}
+                                    </button>
+                                  ))
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
