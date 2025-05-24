@@ -14,7 +14,7 @@ const InfoModal: React.FC<ModalProps> = ({ isOpen, onClose, title = 'Notice', me
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm"
+                    className="fixed inset-0 flex items-center justify-center z-[9999] backdrop-blur-sm"
                     initial="hidden"
                     animate="visible"
                     exit="exit"

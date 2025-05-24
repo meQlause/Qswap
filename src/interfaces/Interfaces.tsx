@@ -24,5 +24,9 @@ export interface Token {
     holders: number;
     address: string
 }
-
+export interface TokenSelection {
+    token: Token | null;
+    amount: number;
+    dropdownOpen: boolean;
+}
 export interface handleTabChange { handleTabChange: (tab: "pools" | "my-pools") => void }
