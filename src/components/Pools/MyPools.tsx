@@ -17,61 +17,6 @@ const MyPools: React.FC<handleTabChange> = ({ handleTabChange }: handleTabChange
     //     // ... other pools
     // ];
 
-    const EmptyState = () => (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="flex flex-col items-center justify-center space-y-5"
-        >
-            <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-                className="w-16 h-16 bg-[#282c34] rounded-full flex items-center justify-center"
-            >
-                <Plus className="w-8 h-8 text-white/60" />
-            </motion.div>
-            <motion.h3
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.3 }}
-                className="text-white font-medium"
-            >
-                {account ? "You don't have any active liquidity positions yet" : "Connect your wallet to view your liquidity positions"}
-            </motion.h3>
-            <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.4 }}
-                className="text-white/60 text-sm max-w-md text-center"
-            >
-                {account
-                    ? "Add liquidity to a pool to start earning fees on trades. You can add liquidity to any pool by clicking the + button in the Pools tab."
-                    : "Connect your wallet to view and manage your liquidity positions. You'll be able to add liquidity to pools and earn trading fees."}
-            </motion.p>
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.5 }}
-                className="mt-4"
-            >
-                {account ? (
-                    <button
-                        onClick={() => handleTabChange('pools')}
-                        className="bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium py-3 px-6 rounded-2xl text-sm"
-                    >
-                        Go to Pools
-                    </button>
-                ) : (
-                    <div className="bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium py-3 px-6 rounded-2xl text-sm">
-                        <ConnectButton />
-                    </div>
-                )}
-            </motion.div>
-        </motion.div>
-    );
-
     return (
         <motion.div
             key="my-pools"
@@ -102,15 +47,101 @@ const MyPools: React.FC<handleTabChange> = ({ handleTabChange }: handleTabChange
                                 </motion.div>
                             ))
                         ) : (
-                            <EmptyState />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.3, delay: 0.1 }}
+                                className="flex flex-col items-center justify-center space-y-5"
+                            >
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.3, delay: 0.2 }}
+                                    className="w-16 h-16 bg-[#282c34] rounded-full flex items-center justify-center"
+                                >
+                                    <Plus className="w-8 h-8 text-white/60" />
+                                </motion.div>
+                                <motion.h3
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.3, delay: 0.3 }}
+                                    className="text-white font-medium"
+                                >
+                                    You don't have any active liquidity positions yet
+                                </motion.h3>
+                                <motion.p
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.3, delay: 0.4 }}
+                                    className="text-white/60 text-sm max-w-md text-center"
+                                >
+                                    Add liquidity to a pool to start earning fees on trades. You can add liquidity to any pool by clicking the + button in the Pools tab.
+                                </motion.p>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.3, delay: 0.5 }}
+                                    className="mt-4"
+                                >
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleTabChange('pools');
+                                        }}
+                                        className="bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium py-3 px-6 rounded-2xl text-sm"
+                                    >
+                                        Go to Pools
+                                    </button>
+                                </motion.div>
+                            </motion.div>
                         )
                     ) : (
-                        <EmptyState />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3, delay: 0.1 }}
+                            className="flex flex-col items-center justify-center space-y-5"
+                        >
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.3, delay: 0.2 }}
+                                className="w-16 h-16 bg-[#282c34] rounded-full flex items-center justify-center"
+                            >
+                                <Plus className="w-8 h-8 text-white/60" />
+                            </motion.div>
+                            <motion.h3
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: 0.3 }}
+                                className="text-white font-medium"
+                            >
+                                Connect your wallet to view your liquidity positions
+                            </motion.h3>
+                            <motion.p
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: 0.4 }}
+                                className="text-white/60 text-sm max-w-md text-center"
+                            >
+                                Connect your wallet to view and manage your liquidity positions. You'll be able to add liquidity to pools and earn trading fees.
+                            </motion.p>
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: 0.5 }}
+                                className="mt-4"
+                            >
+                                <div className="bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium py-3 px-6 rounded-2xl text-sm cursor-pointer">
+                                    <ConnectButton />
+                                </div>
+                            </motion.div>
+                        </motion.div>
                     )}
                 </div>
             </div>
         </motion.div>
-    )
-}
+    );
+};
 
-export default MyPools
+export default MyPools;
