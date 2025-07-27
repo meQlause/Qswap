@@ -45,7 +45,7 @@ const CreateToken: React.FC<Props> = ({ setModalMessage }) => {
                 message: 'Your token has been created successfully!',
                 tokenAddress,
             });
-        } catch (error) {
+        } catch {
             setModalMessage({
                 isOpen: true,
                 type: 'error',

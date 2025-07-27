@@ -13,7 +13,7 @@ const SwapSettings: React.FC<SwapSettingsProps> = ({ onClose }) => {
     <div className="bg-[#212429] border-b border-[#31353e] p-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-white font-medium">Settings</h3>
-        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+        <button title='close' onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
           <X className="w-5 h-5 text-white/80" />
         </button>
       </div>
@@ -71,6 +71,7 @@ const SwapSettings: React.FC<SwapSettingsProps> = ({ onClose }) => {
 
         <div className="flex items-center">
           <input
+            aria-label='tx'
             type="text"
             className="w-16 bg-[#282c34] text-white rounded-xl px-3 py-1.5 text-sm font-medium outline-none mr-2"
             value={transactionDeadline}

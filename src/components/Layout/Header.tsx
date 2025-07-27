@@ -33,6 +33,7 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center">
             <button
+              title='sidebar'
               onClick={() => setIsSidebarOpen(true)}
               className="block md:hidden p-2 rounded-lg hover:bg-[#2c2f36] transition-colors mr-4"
             >
@@ -138,6 +139,7 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
                 <div className="flex items-center justify-between">
                   <Logo />
                   <button
+                    title='sidebar'
                     onClick={() => setIsSidebarOpen(false)}
                     className="p-2 rounded-lg hover:bg-[#2c2f36] transition-colors"
                   >

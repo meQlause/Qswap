@@ -5,7 +5,7 @@ import MyPools from './MyPools';
 import Pools from './Pools';
 import { useWallet } from '../../context/WalletContext';
 import { ModalProps, Token, TokenSelection } from '../../interfaces/Interfaces';
-import proxyDeploy from '../../utils/proxyDeploy';
+// import proxyDeploy from '../../utils/proxyDeploy';
 import InfoModal from '../UI/InfoModal';
 import deployProxyContract from '../../utils/proxyDeploy';
 
@@ -246,6 +246,7 @@ const PoolsCard: React.FC = () => {
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-white text-xl font-medium">Add New Liquidity</h3>
                     <button
+                      title='show_liquidity'
                       onClick={() => setShowNewLiquidityModal(false)}
                       className="text-white/60 hover:text-white"
                     >
