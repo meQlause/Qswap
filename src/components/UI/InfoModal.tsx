@@ -9,7 +9,7 @@ const modalVariants = {
     exit: { opacity: 0, scale: 0.95 },
 };
 
-const InfoModal: React.FC<ModalProps> = ({ isOpen, onClose, title = 'Notice', message }) => {
+const InfoModal: React.FC<ModalProps> = ({ isOpen, onClick, onClose, title = 'Notice', message }) => {
     return (
         <AnimatePresence>
             {isOpen && (
@@ -38,7 +38,7 @@ const InfoModal: React.FC<ModalProps> = ({ isOpen, onClose, title = 'Notice', me
                         <p className="text-white/80 mb-6">{message}</p>
                         <div className="flex justify-end">
                             <button
-                                onClick={onClose}
+                                onClick={onClick}
                                 className="py-2 px-6 bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium rounded-2xl text-sm"
                             >
                                 OK
@@ -51,4 +51,4 @@ const InfoModal: React.FC<ModalProps> = ({ isOpen, onClose, title = 'Notice', me
     );
 };
 
-export default InfoModal; 
+export default InfoModal;

@@ -53,6 +53,7 @@ const Token: React.FC = () => {
             <Modal
                 isOpen={modalState.isOpen}
                 onClose={() => setModalState(prev => ({ ...prev, isOpen: false }))}
+                onClick={modalState.onClick}
                 type={modalState.type}
                 message={modalState.message}
                 tokenAddress={modalState.tokenAddress}

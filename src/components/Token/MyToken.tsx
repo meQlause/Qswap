@@ -102,7 +102,7 @@ const MyToken: React.FC = () => {
                 type={modalMessage.type}
                 message={modalMessage.message}
                 tokenAddress={modalMessage.tokenAddress}
-                onClose={() => setModalMessage({ isOpen: false, message: '' })}
+                onClick={() => setModalMessage({ isOpen: false, message: '' })}
             />
         )}
         <motion.div

@@ -17,6 +17,6 @@ export const getTokenBalance = async (tokenAddress: string): Promise<number> => 
     const decimals = await contract.decimals();
 
     const formatted = ethers.formatUnits(balance, decimals);
-    
+
     return Number(formatted);
 }

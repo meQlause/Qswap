@@ -5,10 +5,10 @@ import MyPools from './MyPools';
 import Pools from './Pools';
 import { useWallet } from '../../context/WalletContext';
 import { ModalProps, TokenSelection } from '../../interfaces/Interfaces';
-// import proxyDeploy from '../../utils/proxyDeploy';
 import InfoModal from '../UI/InfoModal';
 import deployProxyContract from '../../utils/proxyDeploy';
 import { getTokenBalance } from '../../utils/checkBalance';
+import deployNewPool from '../../utils/poolDeploy';
 
 const PoolsCard: React.FC = () => {
   const { account } = useWallet()
@@ -37,7 +37,6 @@ const PoolsCard: React.FC = () => {
   });
 
   const verificateAddress = async (address: string, field: "x" | "y") => {
-
     if (address.length < 42) {
       if (field === "x") {
         setTokenX({ ...tokenX, address, isDisabled: true })
@@ -46,30 +45,36 @@ const PoolsCard: React.FC = () => {
       }
       return
     }
+
     try {
-      const maxAmount: number = await getTokenBalance(address)
+      const balance = await getTokenBalance(address);
+      console.log(123)
+      console.log(balance)
       if (field === 'x') {
-        setTokenX({ ...tokenX, isDisabled: false, maxAmount })
+        setTokenX({ ...tokenX, address, isDisabled: false, maxAmount: balance })
       } else {
-        setTokenY({ ...tokenY, isDisabled: false, maxAmount })
+        setTokenY({ ...tokenY, address, isDisabled: false, maxAmount: await getTokenBalance(address) })
       }
+
     } catch (error: any) {
-      if (field === 'x') {
-        setTokenX({ ...tokenX, address: "", isDisabled: true })
-      } else {
-        setTokenY({ ...tokenY, address: "", isDisabled: true })
-      }
       setModalMessage({
         isOpen: true,
         title: 'Error',
         message: error.message,
         onClose: () => {
-          setModalMessage({
-            isOpen: false,
-            message: '',
-          });
+          setModalMessage({ isOpen: false, message: '' });
+        },
+        onClick: () => {
+          setModalMessage({ isOpen: false, message: '' });
         }
       })
+
+      if (field === 'x') {
+        setTokenX({ ...tokenX, address: "", isDisabled: true })
+      } else {
+        setTokenY({ ...tokenY, address: "", isDisabled: true })
+      }
+
     }
   }
 
@@ -85,34 +90,69 @@ const PoolsCard: React.FC = () => {
 
 
   const handleDeployProxy = async () => {
-    const proxyContract = await deployProxyContract();
-    localStorage.setItem('ProxyAddress', proxyContract);
+    const DeployedContracts = await deployProxyContract();
+    localStorage.setItem('ProxyAddress', DeployedContracts.proxyAddress);
+    localStorage.setItem('UpdaterAddress', DeployedContracts.updaterAddress);
     setModalMessage({
       isOpen: true,
       title: 'Notice',
-      message: `Proxy Contract Address: ${proxyContract}`,
+      message: `Proxy Contract Address: ${DeployedContracts.proxyAddress}`,
       onClose: () => {
-        setModalMessage({
-          isOpen: false,
-          message: '',
-        });
+        setModalMessage({ isOpen: false, message: '' });
+      },
+      onClick: () => {
+        setModalMessage({ isOpen: false, message: '' });
       }
     })
   }
 
-  const handleAddLiquidity = () => {
-    const proxyAddress = localStorage.getItem("proxyAddress")
+  const recordPair = (pair: [string, string]) => {
+    const pairAddresses = localStorage.getItem("PairAddresses");
+    const existingMap = pairAddresses ? JSON.parse(pairAddresses) : {};
+
+    existingMap[pair[0]] = pair[1];
+    existingMap[pair[1]] = pair[0];
+    localStorage.setItem("PairAddresses", JSON.stringify(existingMap));
+  }
+
+  const handleAddLiquidity = async () => {
+    const proxyAddress = localStorage.getItem("ProxyAddress")
     if (!proxyAddress) {
       setModalMessage({
         isOpen: true,
         title: 'Notice',
         message: 'There is No ProxyAddress Detected, Click OK to Deploy Proxy Contract',
+        onClick: async () => {
+          await handleDeployProxy();
+        },
         onClose: () => {
-          handleDeployProxy();
+          setModalMessage({ isOpen: false, message: '' });
         }
       })
       return;
     }
+
+    const deployedAddresses = await deployNewPool(
+      proxyAddress,
+      tokenX.address,
+      String(tokenX.amount + 1),
+      tokenY.address,
+      String(tokenY.amount + 1),
+      fee
+    )
+
+    recordPair(deployedAddresses);
+    setModalMessage({
+      isOpen: true,
+      type: 'success',
+      message: `Your ${deployedAddresses[0]} and ${deployedAddresses[1]} 's pair has been created successfully!`,
+      onClose: () => {
+        setModalMessage({ isOpen: false, message: '' });
+      },
+      onClick: () => {
+        setModalMessage({ isOpen: false, message: '' });
+      }
+    });
   }
 
   const handleAmountChange = (token: 'x' | 'y', value: string) => {
@@ -124,8 +164,8 @@ const PoolsCard: React.FC = () => {
       }
       setTokenX(prev => ({ ...prev, amount: numValue }));
     } else {
-      if (numValue > tokenX.maxAmount) {
-        setTokenX(prev => ({ ...prev, amount: tokenX.maxAmount }));
+      if (numValue > tokenY.maxAmount) {
+        setTokenY(prev => ({ ...prev, amount: tokenY.maxAmount }));
         return
       }
       setTokenY(prev => ({ ...prev, amount: numValue }));
@@ -160,6 +200,7 @@ const PoolsCard: React.FC = () => {
         type={modalMessage.type}
         message={modalMessage.message}
         tokenAddress={modalMessage.tokenAddress}
+        onClick={modalMessage.onClick}
         onClose={modalMessage.onClose}
       />
       <div className="relative w-full max-w-4xl mx-auto">
@@ -337,7 +378,7 @@ const PoolsCard: React.FC = () => {
 
                     <button
                       disabled={tokenX.amount <= 0 || tokenY.amount <= 0}
-                      onClick={() => handleAddLiquidity()}
+                      onClick={async () => await handleAddLiquidity()}
                       className="w-full bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium py-3 px-6 rounded-2xl text-sm mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
                       Add Liquidity
                     </button>

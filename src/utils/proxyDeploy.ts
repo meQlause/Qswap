@@ -1,15 +1,13 @@
 import { ethers } from "ethers";
-import QswapProxy from "../../contracts/artifacts/contracts/swap/qswapProxy.sol/QswapProxy.json"
+import QswapProxy from "../../contracts/artifacts/contracts/swap/qswapProxy.sol/QswapProxy.json";
 
-declare global {  
+declare global {
     interface Window {
         ethereum: any;
     }
 }
 
-
 const deployProxyContract = async () => {
-
     if (typeof window.ethereum === 'undefined') {
         throw new Error('Please install MetaMask to deploy tokens');
     }
@@ -22,9 +20,16 @@ const deployProxyContract = async () => {
     const contract = await factory.deploy();
     await contract.waitForDeployment();
 
-    const deployedAddress = await contract.getAddress();
+    const proxyAddress = await contract.getAddress();
 
-    return deployedAddress;
+    const proxy = new ethers.Contract(proxyAddress, QswapProxy.abi, signer);
+
+    const updaterAddress: string = await proxy._tokenBalanceUpdaterContract();
+
+    return {
+        proxyAddress,
+        updaterAddress,
+    };
 };
 
 export default deployProxyContract;

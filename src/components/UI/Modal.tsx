@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, CheckCircle, X } from "lucide-react";
 import { ModalProps } from "../../interfaces/Interfaces";
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, type, message, tokenAddress }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onClick, type, message, tokenAddress }) => {
 
     return (
         <AnimatePresence mode="wait">
@@ -43,7 +43,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, type, message, tokenAddr
                             )}
 
                             <button
-                                onClick={onClose}
+                                onClick={onClick}
                                 className={`mt-4 px-6 py-2 rounded-xl font-medium ${type === 'success'
                                     ? 'bg-green-500 hover:bg-green-600'
                                     : 'bg-red-500 hover:bg-red-600'

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import React, { useState } from "react";
+import React from "react";
 import ConnectButton from "../UI/ConnectButton";
 import { Plus } from "lucide-react";
 import { useWallet } from "../../context/WalletContext";
@@ -7,7 +7,8 @@ import { Pool, handleTabChange } from "../../interfaces/Interfaces";
 
 const MyPools: React.FC<handleTabChange> = ({ handleTabChange }: handleTabChange) => {
     const { account } = useWallet()
-    const [pools, setPools] = useState<Pool[]>([]);
+    // const [pools, setPools] = useState<Pool[]>([]);
+    const pools: Pool[] = []
 
     // This would normally come from your backend/contract
     // For now, we'll use empty array to show the empty state
