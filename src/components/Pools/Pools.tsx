@@ -14,6 +14,7 @@ const Pools: React.FC = () => {
     const [selectedTokenY, setSelectedTokenY] = useState<string | null>(null);
     const [pairAddress, setPairAddress] = useState<string>('');
     const [tokens, setTokens] = useState<Token[]>([]);
+    console.log(pairAddress, tokens)
 
     const pools: Pool[] = [
         { id: 1, pair: 'ETH / USDC', fee: '0.05%', tvl: '$245.89M', tokenX: 'ETH', tokenY: 'USDC' },
@@ -52,7 +53,7 @@ const Pools: React.FC = () => {
         >
             <div className="bg-[#212429] rounded-2xl p-6">
                 <h4 className="text-white font-medium mb-3">Popular pools</h4>
-                <div className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
+                <div className="space-y-4 max-h-[380px] overflow-y-auto custom-scrollbar">
                     {pools.map((pool, index) => (
                         <motion.div
                             key={pool.id}

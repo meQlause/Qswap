@@ -1,38 +1,77 @@
-import React, { useState, useRef, TouchEvent, useEffect } from 'react';
-import { Plus, Search, ArrowUpDown, ChevronLeft, ChevronRight, X, ChevronDown } from 'lucide-react';
+import React, { useState, useRef, TouchEvent, } from 'react';
+import { Plus, Search, ArrowUpDown, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import MyPools from './MyPools';
 import Pools from './Pools';
 import { useWallet } from '../../context/WalletContext';
-import { ModalProps, Token, TokenSelection } from '../../interfaces/Interfaces';
+import { ModalProps, TokenSelection } from '../../interfaces/Interfaces';
 // import proxyDeploy from '../../utils/proxyDeploy';
 import InfoModal from '../UI/InfoModal';
 import deployProxyContract from '../../utils/proxyDeploy';
+import { getTokenBalance } from '../../utils/checkBalance';
 
 const PoolsCard: React.FC = () => {
   const { account } = useWallet()
-  const [tokens, setTokens] = useState<Token[]>([])
   const [activeTab, setActiveTab] = useState<'pools' | 'my-pools'>('pools');
   const [showNewLiquidityModal, setShowNewLiquidityModal] = useState(false);
   const [showTabIndicator, setShowTabIndicator] = useState(false);
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
   const searchTerm = useRef<string>('')
-
+  const [fee, setFee] = useState<1 | 5 | 30>(1)
   const [tokenX, setTokenX] = useState<TokenSelection>({
-    token: null,
+    address: '',
     amount: 0,
-    dropdownOpen: false
+    isDisabled: true,
+    maxAmount: 0
   });
   const [tokenY, setTokenY] = useState<TokenSelection>({
-    token: null,
+    address: '',
     amount: 0,
-    dropdownOpen: false
+    isDisabled: true,
+    maxAmount: 0
   });
   const [modalMessage, setModalMessage] = useState<ModalProps>({
     isOpen: false,
     message: '',
   });
+
+  const verificateAddress = async (address: string, field: "x" | "y") => {
+
+    if (address.length < 42) {
+      if (field === "x") {
+        setTokenX({ ...tokenX, address, isDisabled: true })
+      } else {
+        setTokenY({ ...tokenY, address, isDisabled: true })
+      }
+      return
+    }
+    try {
+      const maxAmount: number = await getTokenBalance(address)
+      if (field === 'x') {
+        setTokenX({ ...tokenX, isDisabled: false, maxAmount })
+      } else {
+        setTokenY({ ...tokenY, isDisabled: false, maxAmount })
+      }
+    } catch (error: any) {
+      if (field === 'x') {
+        setTokenX({ ...tokenX, address: "", isDisabled: true })
+      } else {
+        setTokenY({ ...tokenY, address: "", isDisabled: true })
+      }
+      setModalMessage({
+        isOpen: true,
+        title: 'Error',
+        message: error.message,
+        onClose: () => {
+          setModalMessage({
+            isOpen: false,
+            message: '',
+          });
+        }
+      })
+    }
+  }
 
   const handleTabChange = (tab: 'pools' | 'my-pools') => {
     setShowTabIndicator(true);
@@ -43,6 +82,7 @@ const PoolsCard: React.FC = () => {
   const handleSearchChange = (e: any) => {
     searchTerm.current = e.target.vale;
   }
+
 
   const handleDeployProxy = async () => {
     const proxyContract = await deployProxyContract();
@@ -75,11 +115,19 @@ const PoolsCard: React.FC = () => {
     }
   }
 
-  const handleAmountChange = (token: 'X' | 'Y', value: string) => {
+  const handleAmountChange = (token: 'x' | 'y', value: string) => {
     const numValue = parseFloat(value) || 0;
-    if (token === 'X') {
+    if (token === 'x') {
+      if (numValue > tokenX.maxAmount) {
+        setTokenX(prev => ({ ...prev, amount: tokenX.maxAmount }));
+        return
+      }
       setTokenX(prev => ({ ...prev, amount: numValue }));
     } else {
+      if (numValue > tokenX.maxAmount) {
+        setTokenX(prev => ({ ...prev, amount: tokenX.maxAmount }));
+        return
+      }
       setTokenY(prev => ({ ...prev, amount: numValue }));
     }
   };
@@ -104,31 +152,6 @@ const PoolsCard: React.FC = () => {
       }
     }
   };
-
-  useEffect(() => {
-    const stored = localStorage.getItem(account ? account : '');
-    if (stored) {
-      setTokens(JSON.parse(stored));
-    }
-
-  }, [account]);
-
-  useEffect(() => {
-    console.log('Current tokens:', tokens);
-  }, [tokens]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.token-dropdown')) {
-        setTokenX(prev => ({ ...prev, dropdownOpen: false }));
-        setTokenY(prev => ({ ...prev, dropdownOpen: false }));
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   return (
     <>
@@ -159,7 +182,7 @@ const PoolsCard: React.FC = () => {
         </button>
 
         <div
-          className="w-full bg-[#191b1f] rounded-3xl shadow-lg overflow-hidden min-h-[600px] flex items-center justify-center"
+          className="w-full bg-[#191b1f] rounded-3xl shadow-lg overflow-hidden min-h-[500px] flex items-center justify-center"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -257,117 +280,63 @@ const PoolsCard: React.FC = () => {
                   <div className="space-y-4">
                     <div className="bg-[#212429] rounded-2xl p-4">
                       <label className="text-white/60 text-sm mb-2 block">Token 1</label>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-col space-y-2">
+                        <input
+                          type="text"
+                          placeholder="Enter token address"
+                          value={tokenX.address || ''}
+                          onChange={async (e) => await verificateAddress(e.target.value, 'x')}
+                          className="bg-[#282c34] text-white rounded-xl px-4 py-2 w-full outline-none mb-2"
+                        />
                         <input
                           type="number"
                           placeholder="0.0"
                           value={tokenX.amount || ''}
-                          onChange={(e) => handleAmountChange('X', e.target.value)}
+                          onChange={(e) => handleAmountChange('x', e.target.value)}
                           className="bg-[#282c34] text-white rounded-xl px-4 py-2 w-full outline-none"
+                          disabled={tokenX.isDisabled}
                         />
-                        <div className="relative token-dropdown">
-                          <button
-                            className="bg-[#282c34] hover:bg-[#31353e] text-white px-4 py-2 rounded-xl text-sm w-full text-left flex items-center justify-between"
-                            onClick={() => setTokenX(prev => ({ ...prev, dropdownOpen: !prev.dropdownOpen }))}
-                          >
-                            <span>{tokenX.token?.symbol || 'Select'}</span>
-                            <ChevronDown className="w-4 h-4 ml-2" />
-                          </button>
-
-                          {tokenX.dropdownOpen && (
-                            <div className="absolute top-full left-0 right-0 bg-[#212429] mt-1 rounded-r shadow-lg z-[100] border border-[#2c2f36]">
-                              <div className={`max-h-[120px] overflow-y-auto ${tokens.filter(token => token !== tokenX.token && token !== tokenY.token).length > 3 ? 'custom-scrollbar' : ''}`}>
-                                {tokens.length === 0 ? (
-                                  <div className="px-4 py-2 text-white/60 text-sm">No tokens available</div>
-                                ) : tokens.filter(token => token !== tokenX.token && token !== tokenY.token).length === 0 ? (
-                                  <div className="px-4 py-2 text-white/60 text-sm">All tokens have been selected</div>
-                                ) : (
-                                  tokens
-                                    .filter(token => token !== tokenX.token && token !== tokenY.token)
-                                    .map((token) => (
-                                      <button
-                                        key={token.address}
-                                        onClick={() => {
-                                          setTokenX(prev => ({ ...prev, token, dropdownOpen: false }));
-                                        }}
-                                        className="w-full text-left px-4 py-2 hover:bg-[#2c2f36] hover:rounded-r text-white text-sm flex items-center"
-                                      >
-                                        {token.symbol}
-                                      </button>
-                                    ))
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
                       </div>
                     </div>
 
                     <div className="bg-[#212429] rounded-2xl p-4">
                       <label className="text-white/60 text-sm mb-2 block">Token 2</label>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-col space-y-2">
+                        <input
+                          type="text"
+                          placeholder="Enter token address"
+                          value={tokenY.address || ''}
+                          onChange={async (e) => await verificateAddress(e.target.value, 'y')}
+                          className="bg-[#282c34] text-white rounded-xl px-4 py-2 w-full outline-none mb-2"
+                        />
                         <input
                           type="number"
                           placeholder="0.0"
                           value={tokenY.amount || ''}
-                          onChange={(e) => handleAmountChange('Y', e.target.value)}
+                          onChange={(e) => handleAmountChange('y', e.target.value)}
                           className="bg-[#282c34] text-white rounded-xl px-4 py-2 w-full outline-none"
+                          disabled={tokenY.isDisabled}
                         />
-                        <div className="relative token-dropdown">
-                          <button
-                            className="bg-[#282c34] hover:bg-[#31353e] text-white px-4 py-2 rounded-xl text-sm w-full text-left flex items-center justify-between"
-                            onClick={() => setTokenY(prev => ({ ...prev, dropdownOpen: !prev.dropdownOpen }))}
-                          >
-                            <span>{tokenY.token?.symbol || 'Select'}</span>
-                            <ChevronDown className="w-4 h-4 ml-2" />
-                          </button>
-
-                          {tokenY.dropdownOpen && (
-                            <div className="absolute top-full left-0 right-0 bg-[#212429] mt-1 rounded-r shadow-lg z-[100] border border-[#2c2f36]">
-                              <div className={`max-h-[120px] overflow-y-auto ${tokens.filter(token => token !== tokenX.token && token !== tokenY.token).length > 3 ? 'custom-scrollbar' : ''}`}>
-                                {tokens.length === 0 ? (
-                                  <div className="px-4 py-2 text-white/60 text-sm">No tokens available</div>
-                                ) : tokens.filter(token => token !== tokenX.token && token !== tokenY.token).length === 0 ? (
-                                  <div className="px-4 py-2 text-white/60 text-sm">All tokens have been selected</div>
-                                ) : (
-                                  tokens
-                                    .filter(token => token !== tokenX.token && token !== tokenY.token)
-                                    .map((token) => (
-                                      <button
-                                        key={token.address}
-                                        onClick={() => {
-                                          setTokenY(prev => ({ ...prev, token, dropdownOpen: false }));
-                                        }}
-                                        className="w-full text-left px-4 py-2 hover:bg-[#2c2f36] hover:rounded-r text-white text-sm flex items-center"
-                                      >
-                                        {token.symbol}
-                                      </button>
-                                    ))
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
                       </div>
                     </div>
 
                     <div className="bg-[#212429] rounded-2xl p-4">
                       <label className="text-white/60 text-sm mb-2 block">Fee Tier</label>
                       <div className="grid grid-cols-3 gap-2">
-                        <button className="bg-[#282c34] hover:bg-[#31353e] text-white py-2 rounded-xl text-sm">
+                        <button onClick={() => setFee(1)} className={`${fee === 1 ? "bg-[#31353e]" : "bg-[#282c34]"} hover:bg-[#31353e] text-white py-2 rounded-xl text-sm`}>
                           0.01%
                         </button>
-                        <button className="bg-[#282c34] hover:bg-[#31353e] text-white py-2 rounded-xl text-sm">
+                        <button onClick={() => setFee(5)} className={`${fee === 5 ? "bg-[#31353e]" : "bg-[#282c34]"} hover:bg-[#31353e] text-white py-2 rounded-xl text-sm`}>
                           0.05%
                         </button>
-                        <button className="bg-[#282c34] hover:bg-[#31353e] text-white py-2 rounded-xl text-sm">
+                        <button onClick={() => setFee(30)} className={`${fee === 30 ? "bg-[#31353e]" : "bg-[#282c34]"} hover:bg-[#31353e] text-white py-2 rounded-xl text-sm`}>
                           0.30%
                         </button>
                       </div>
                     </div>
 
                     <button
-                      disabled={!tokenX.token || !tokenY.token || tokenX.amount <= 0 || tokenY.amount <= 0}
+                      disabled={tokenX.amount <= 0 || tokenY.amount <= 0}
                       onClick={() => handleAddLiquidity()}
                       className="w-full bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium py-3 px-6 rounded-2xl text-sm mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
                       Add Liquidity

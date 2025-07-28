@@ -75,7 +75,7 @@ const Token: React.FC = () => {
             </button>
 
             <div
-                className="w-full bg-[#191b1f] rounded-3xl shadow-lg overflow-hidden min-h-[600px] flex items-center justify-center"
+                className="w-full bg-[#191b1f] rounded-3xl shadow-lg overflow-hidden min-h-[500px] flex items-center justify-center"
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
