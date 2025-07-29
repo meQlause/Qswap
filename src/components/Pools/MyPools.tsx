@@ -1,14 +1,52 @@
 import { motion } from "framer-motion";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ConnectButton from "../UI/ConnectButton";
 import { Plus } from "lucide-react";
 import { useWallet } from "../../context/WalletContext";
 import { Pool, handleTabChange } from "../../interfaces/Interfaces";
+import { getPairInfo } from "../../utils/getPairInfo";
+import { getTokenInfo } from "../../utils/tokenDetails";
 
 const MyPools: React.FC<handleTabChange> = ({ handleTabChange }: handleTabChange) => {
     const { account } = useWallet()
-    // const [pools, setPools] = useState<Pool[]>([]);
-    const pools: Pool[] = []
+    const [pools, setPools] = useState<Pool[]>([]);
+    useEffect(() => {
+        const contractAddresses = localStorage.getItem("ContractPairAddresses");
+
+        if (contractAddresses) {
+            const parsedAddresses = JSON.parse(contractAddresses); // should be an object
+            const addressList = Object.keys(parsedAddresses) as string[]; // or Object.keys() if keys are addresses
+
+            const fetchAllData = async () => {
+                try {
+                    const pairAddress: any = await Promise.all(
+                        addressList.map((address: string) => getPairInfo(address))
+                    );
+                    if (pairAddress) {
+                        const tokenAddresses: any = await Promise.all([
+                            getTokenInfo(pairAddress[0].tokenX),
+                            getTokenInfo(pairAddress[0].tokenY)
+                        ]);
+                        if (tokenAddresses) {
+                            const newPools: Pool[] = pairAddress.map((pair: any, index: number) => ({
+                                id: index + 1,
+                                pair: `${tokenAddresses[0].symbol as string} / ${tokenAddresses[1].symbol as string}`,
+                                fee: `${Number(pair.fee) / 100}%`,
+                                tvl: `Convertion Not Available`,
+                                tokenX: tokenAddresses[0].symbol as string,
+                                tokenY: tokenAddresses[1].symbol as string
+                            }));
+                            setPools(newPools);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error fetching one or more pairs:", err);
+                }
+            };
+
+            fetchAllData();
+        }
+    }, []);
 
     // This would normally come from your backend/contract
     // For now, we'll use empty array to show the empty state
@@ -27,9 +65,9 @@ const MyPools: React.FC<handleTabChange> = ({ handleTabChange }: handleTabChange
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="w-full"
         >
-            <div className={`bg-[#212429] ${pools.length === 0 && " flex justify-center items-center h-full"} min-h-[450px] rounded-2xl p-6`}>
+            <div className={`bg-[#212429] ${pools.length === 0 && " flex justify-center items-center h-full"} overflow-y-hidden min-h-[450px] rounded-2xl p-6`}>
                 {pools.length > 0 && (<h4 className="text-white font-medium mb-3">My pools</h4>)}
-                <div className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
+                <div className="space-y-4 max-h-[400px] custom-scrollbar">
                     {account ? (
                         pools.length > 0 ? (
                             pools.map((pool, index) => (
