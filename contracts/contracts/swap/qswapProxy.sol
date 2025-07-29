@@ -21,7 +21,7 @@ contract QswapProxy {
         getPair[tokenY][tokenX] = pair;
         getLTPair[liquidityToken] = pair;
 
-        emit PairCreated(tokenX, tokenY, pair);
+        emit PairCreated(tokenX, tokenY, pair, liquidityToken);
     }
 
     function swap(address tokenX, address tokenY, uint256 amount) external returns (bool isSuccess) {
@@ -60,6 +60,6 @@ contract QswapProxy {
         return (isReverse, pairToUse);
     }
 
-    event PairCreated(address indexed tokenX, address indexed tokenY, address pair);
+    event PairCreated(address indexed tokenX, address indexed tokenY, address pair, address liquidityToken);
 }
 
