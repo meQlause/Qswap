@@ -137,41 +137,82 @@ const MyToken: React.FC = () => {
                             Add Token Address
                         </button>
                     </div>
-                    <div className="space-y-4 h-[400px] overflow-y-auto custom-scrollbar">
+                    <div className={`space-y-4 h-[400px] ${tokens.length === 0 && "flex justify-center"} overflow-y-auto overflow-x-hidden`}>
                         <AnimatePresence
                             onExitComplete={() =>
                                 handleAnimationComplete()
                             }
                         >
-                            {tokens.map(token => (
-                                !deletingTokens.has(token.address) && (
-                                    <motion.div
-                                        key={token.address}
-                                        className="bg-[#282c34] rounded-xl p-4"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, x: 100 }}
-                                        transition={{ duration: 0.3 }}
-                                    >
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-white">{token.name}</span>
-                                            <span className="text-white/60">{token.symbol}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <div className="text-sm text-white/60">
-                                                Total Supply: {token.totalSupply} | Holders: {token.holders}
+                            {tokens.length > 0 ? (
+                                tokens.map(token => (
+                                    !deletingTokens.has(token.address) && (
+                                        <motion.div
+                                            key={token.address}
+                                            className="bg-[#282c34] rounded-xl p-4"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, x: 100 }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-white">{token.name}</span>
+                                                <span className="text-white/60">{token.symbol}</span>
                                             </div>
-                                            <button
-                                                onClick={() => handleDelete(token.address)}
-                                                className=" hover:text-white transition-colors"
-                                                title="Delete Token"
-                                            >
-                                                <Trash2 className="w-4 h-4 text-white/60 hover:text-white" />
-                                            </button>
-                                        </div>
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-sm text-white/60">
+                                                    Total Supply: {token.totalSupply} | Holders: {token.holders}
+                                                </div>
+                                                <button
+                                                    onClick={() => handleDelete(token.address)}
+                                                    className="hover:text-white transition-colors"
+                                                    title="Delete Token"
+                                                >
+                                                    <Trash2 className="w-4 h-4 text-white/60 hover:text-white" />
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )
+                                ))
+                            ) : (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.3, delay: 0.1 }}
+                                    className="flex flex-col items-center justify-center space-y-5"
+                                >
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ duration: 0.3, delay: 0.2 }}
+                                        className="w-16 h-16 bg-[#282c34] rounded-full flex items-center justify-center"
+                                    >
+                                        <Plus className="w-8 h-8 text-white/60" />
                                     </motion.div>
-                                )
-                            ))}
+                                    <motion.h3
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.3, delay: 0.3 }}
+                                        className="text-white font-medium"
+                                    >
+                                        You don't have tokens that was created by Qswap
+                                    </motion.h3>
+                                    <motion.p
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.3, delay: 0.4 }}
+                                        className="text-white/60 text-sm max-w-md text-center"
+                                    >
+                                        Create one or add it manually to show your tokens here, you don't need to add the token manually after creating token directly in this web.
+                                    </motion.p>
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.3, delay: 0.5 }}
+                                        className="mt-4"
+                                    >
+                                    </motion.div>
+                                </motion.div>
+                            )}
                         </AnimatePresence>
                     </div>
                 </div>
@@ -219,9 +260,10 @@ const MyToken: React.FC = () => {
                         </motion.div>
                     </motion.div>
                 </div>
-            )}
-        </motion.div>
-    </div>
+            )
+            }
+        </motion.div >
+    </div >
     )
 }
 

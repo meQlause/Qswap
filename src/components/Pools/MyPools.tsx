@@ -27,8 +27,8 @@ const MyPools: React.FC<handleTabChange> = ({ handleTabChange }: handleTabChange
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="w-full"
         >
-            <div className="bg-[#212429] min-h-[500px] rounded-2xl p-6">
-                <h4 className="text-white font-medium mb-3">My pools</h4>
+            <div className={`bg-[#212429] ${pools.length === 0 && " flex justify-center items-center h-full"} min-h-[450px] rounded-2xl p-6`}>
+                {pools.length > 0 && (<h4 className="text-white font-medium mb-3">My pools</h4>)}
                 <div className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
                     {account ? (
                         pools.length > 0 ? (
@@ -52,7 +52,7 @@ const MyPools: React.FC<handleTabChange> = ({ handleTabChange }: handleTabChange
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ duration: 0.3, delay: 0.1 }}
-                                className="flex flex-col items-center justify-center space-y-5"
+                                className="flex flex-col overflow-y-hidden items-center justify-center space-y-5"
                             >
                                 <motion.div
                                     initial={{ opacity: 0, scale: 0.8 }}
