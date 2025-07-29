@@ -9,6 +9,7 @@ import InfoModal from '../UI/InfoModal';
 import deployProxyContract from '../../utils/proxyDeploy';
 import { getTokenBalance } from '../../utils/checkBalance';
 import deployNewPool from '../../utils/poolDeploy';
+import { listener } from '../../utils/poolDeployListener';
 
 const PoolsCard: React.FC = () => {
   const { account } = useWallet()
@@ -48,8 +49,6 @@ const PoolsCard: React.FC = () => {
 
     try {
       const balance = await getTokenBalance(address);
-      console.log(123)
-      console.log(balance)
       if (field === 'x') {
         setTokenX({ ...tokenX, address, isDisabled: false, maxAmount: balance })
       } else {
@@ -106,13 +105,17 @@ const PoolsCard: React.FC = () => {
     })
   }
 
-  const recordPair = (pair: [string, string]) => {
+  const recordPair = (x: string, y: string, pair: string, lt: string) => {
     const pairAddresses = localStorage.getItem("PairAddresses");
+    const ContractPairAddress = localStorage.getItem("ContractPairAddresses");
     const existingMap = pairAddresses ? JSON.parse(pairAddresses) : {};
+    const existingMap1 = ContractPairAddress ? JSON.parse(ContractPairAddress) : {};
 
-    existingMap[pair[0]] = pair[1];
-    existingMap[pair[1]] = pair[0];
+    existingMap[x] = y;
+    existingMap[y] = x;
+    existingMap1[pair] = { existingMap, lt };
     localStorage.setItem("PairAddresses", JSON.stringify(existingMap));
+    localStorage.setItem("ContractPairAddresses", JSON.stringify(existingMap1));
   }
 
   const handleAddLiquidity = async () => {
@@ -132,27 +135,44 @@ const PoolsCard: React.FC = () => {
       return;
     }
 
-    const deployedAddresses = await deployNewPool(
-      proxyAddress,
-      tokenX.address,
-      String(tokenX.amount + 1),
-      tokenY.address,
-      String(tokenY.amount + 1),
-      fee
-    )
+    try {
 
-    recordPair(deployedAddresses);
-    setModalMessage({
-      isOpen: true,
-      type: 'success',
-      message: `Your ${deployedAddresses[0]} and ${deployedAddresses[1]} 's pair has been created successfully!`,
-      onClose: () => {
-        setModalMessage({ isOpen: false, message: '' });
-      },
-      onClick: () => {
-        setModalMessage({ isOpen: false, message: '' });
-      }
-    });
+      listener(proxyAddress, (x, y, pair, lt) => {
+        recordPair(x, y, pair, lt);
+        setModalMessage({
+          isOpen: true,
+          type: 'success',
+          message: `Your ${x} and ${y}'s pair has been created to address ${pair} successfully! please save ${lt} to your wallet as your Liquidity Token's address`,
+          onClose: () => {
+            setModalMessage({ isOpen: false, message: '' });
+          },
+          onClick: () => {
+            setModalMessage({ isOpen: false, message: '' });
+          }
+        });
+      })
+
+      await deployNewPool(
+        proxyAddress,
+        tokenX.address,
+        String(tokenX.amount + 1),
+        tokenY.address,
+        String(tokenY.amount + 1),
+        fee
+      )
+    } catch (error: any) {
+      setModalMessage({
+        isOpen: true,
+        type: 'error',
+        message: `error ${error.mesage} : Pair already've been created`,
+        onClose: () => {
+          setModalMessage({ isOpen: false, message: '' });
+        },
+        onClick: () => {
+          setModalMessage({ isOpen: false, message: '' });
+        }
+      });
+    }
   }
 
   const handleAmountChange = (token: 'x' | 'y', value: string) => {

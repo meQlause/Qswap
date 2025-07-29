@@ -8,7 +8,8 @@ declare global {
     }
 }
 const proxyAbi = QswapProxy.abi;
-const erc20Abi = [
+const abi = [
+    "function createPair(address tokenX, uint256 amountTokenX, address tokenY, uint256 amountTokenY, uint256 fee) external returns (address pair)",
     "function approve(address spender, uint256 amount) public returns (bool)"
 ];
 
@@ -17,7 +18,7 @@ const deployNewPool = async (
     xAddress: string,
     xAmount: string,
     yAddress: string,
-    yAmount: string, fee: number): Promise<[string, string]> => {
+    yAmount: string, fee: number) => {
     const balanceUpdater = localStorage.getItem("UpdaterAddress")
 
     const provider = new ethers.BrowserProvider(window.ethereum);
@@ -25,13 +26,13 @@ const deployNewPool = async (
     const proxy = new ethers.Contract(proxyAddress, proxyAbi, signer);
 
     // Approve tokenX
-    const tokenX = new ethers.Contract(xAddress, erc20Abi, signer);
+    const tokenX = new ethers.Contract(xAddress, abi, signer);
     const approveTxX = await tokenX.approve(balanceUpdater, ethers.parseUnits(xAmount, 18));
     await approveTxX.wait();
     console.log("TokenX approved");
 
     // Approve tokenY
-    const tokenY = new ethers.Contract(yAddress, erc20Abi, signer);
+    const tokenY = new ethers.Contract(yAddress, abi, signer);
     const approveTxY = await tokenY.approve(balanceUpdater, ethers.parseUnits(yAmount, 18));
     await approveTxY.wait();
     console.log("TokenY approved");
@@ -48,9 +49,8 @@ const deployNewPool = async (
 
     if (receipt) {
         console.log("Pair created:");
-        console.log("tokenX:", tokenX);
-        console.log("tokenY:", tokenY);
-        return [xAddress, yAddress]
+        console.log("tokenX:", tokenX.target);
+        console.log("tokenY:", tokenY.target);
     } else {
         throw new Error("No PairCreated event found")
     }

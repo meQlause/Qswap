@@ -56,6 +56,12 @@ const CreateToken: React.FC<Props> = ({ setModalMessage }) => {
                 isOpen: true,
                 type: 'error',
                 message: 'Failed to create token. Please try again.',
+                onClick: () => {
+                    setModalMessage({ isOpen: false, message: '' });
+                },
+                onClose: () => {
+                    setModalMessage({ isOpen: false, message: '' });
+                },
             });
         } finally {
             setIsSubmitting(false);

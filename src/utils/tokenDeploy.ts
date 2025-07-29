@@ -7,7 +7,6 @@ declare global {
     }
 }
 
-
 const createToken = async (initialSupply: number, name: string, symbol: string, isMintable: boolean, isBurnable: boolean) => {
 
     // Check if MetaMask is installed
@@ -18,7 +17,6 @@ const createToken = async (initialSupply: number, name: string, symbol: string, 
     // Request account access
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
-
     const factory = new ethers.ContractFactory(QswapTokenCreator.abi, QswapTokenCreator.bytecode, signer);
 
     const contract = await factory.deploy(
@@ -30,6 +28,7 @@ const createToken = async (initialSupply: number, name: string, symbol: string, 
         symbol.toUpperCase(),
         isMintable,
         isBurnable);
+
     await contract.waitForDeployment();
 
     const deployedAddress = await contract.getAddress();
