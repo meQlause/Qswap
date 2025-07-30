@@ -25,19 +25,31 @@ const CreateToken: React.FC<Props> = ({ setModalMessage }) => {
         setIsSubmitting(true);
         try {
             const tokenAddress = await createToken(initialSupply, name, symbol, mintable, burnable);
-            const stored = localStorage.getItem(account ? account : '');
-            if (stored) {
-                const tokenList: Token[] = JSON.parse(stored);
-                const tokenToAdd = await getTokenInfo(tokenAddress);
-                if (!tokenToAdd) {
-                    throw new Error("tokenToAdd is required");
-                }
-                if (!account) {
-                    throw new Error("Account is required");
-                }
-                tokenList.push(tokenToAdd)
-                localStorage.setItem(account, JSON.stringify(tokenList));
+            if (!account) {
+                throw new Error("Account is required");
             }
+
+            const stored = localStorage.getItem(account);
+            let tokenList: Token[] = [];
+            if (stored) {
+                try {
+                    tokenList = JSON.parse(stored);
+                    if (!Array.isArray(tokenList)) {
+                        tokenList = [];
+                    }
+                } catch (e) {
+                    console.error("Failed to parse stored tokens:", e);
+                    tokenList = [];
+                }
+            }
+
+            const tokenToAdd = await getTokenInfo(tokenAddress);
+            if (!tokenToAdd) {
+                throw new Error("tokenToAdd is required");
+            }
+
+            tokenList.push(tokenToAdd);
+            localStorage.setItem(account, JSON.stringify(tokenList));
 
             setModalMessage({
                 isOpen: true,

@@ -106,17 +106,25 @@ const PoolsCard: React.FC = () => {
   }
 
   const recordPair = (x: string, y: string, pair: string, lt: string) => {
-    const pairAddresses = localStorage.getItem("PairAddresses");
-    const ContractPairAddress = localStorage.getItem("ContractPairAddresses");
-    const existingMap = pairAddresses ? JSON.parse(pairAddresses) : {};
-    const existingMap1 = ContractPairAddress ? JSON.parse(ContractPairAddress) : {};
+    const pairAddressesStr = localStorage.getItem("PairAddresses");
+    const contractPairAddressesStr = localStorage.getItem("ContractPairAddresses");
+    const pairAddresses: Record<string, Record<string, string>> = pairAddressesStr ? JSON.parse(pairAddressesStr) : {};
+    const contractPairAddresses: Record<string, { lt: string }> = contractPairAddressesStr ? JSON.parse(contractPairAddressesStr) : {};
+    if (!pairAddresses[x]) {
+      pairAddresses[x] = {};
+    }
 
-    existingMap[x] = y;
-    existingMap[y] = x;
-    existingMap1[pair] = { existingMap, lt };
-    localStorage.setItem("PairAddresses", JSON.stringify(existingMap));
-    localStorage.setItem("ContractPairAddresses", JSON.stringify(existingMap1));
-  }
+    pairAddresses[x][y] = pair;
+
+    if (!pairAddresses[y]) {
+      pairAddresses[y] = {};
+    }
+
+    pairAddresses[y][x] = pair;
+    contractPairAddresses[pair] = { lt };
+    localStorage.setItem("PairAddresses", JSON.stringify(pairAddresses));
+    localStorage.setItem("ContractPairAddresses", JSON.stringify(contractPairAddresses));
+  };
 
   const handleAddLiquidity = async () => {
     const proxyAddress = localStorage.getItem("ProxyAddress")

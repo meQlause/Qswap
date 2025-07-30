@@ -26,6 +26,12 @@ export interface Token {
     address: string
 }
 
+export type TokenlistSwap = {
+    symbol: string,
+    name: string,
+    address: string,
+}
+
 export interface TokenSelection {
     address: string,
     amount: number;

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { X, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { TokenlistSwap } from '../../interfaces/Interfaces';
 
 interface TokenSelectorModalProps {
   onClose: () => void;
-  onSelect: (token: string) => void;
+  onSelect: (token: TokenlistSwap) => void;
+  tokens: TokenlistSwap[];
 }
 
 const modalVariants = {
@@ -13,21 +15,11 @@ const modalVariants = {
   exit: { opacity: 0, scale: 0.95 },
 };
 
-const POPULAR_TOKENS = [
-  { symbol: 'ETH', name: 'Ethereum', icon: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png' },
-  { symbol: 'USDC', name: 'USD Coin', icon: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png' },
-  { symbol: 'USDT', name: 'Tether', icon: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png' },
-  { symbol: 'DAI', name: 'Dai Stablecoin', icon: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0x6B175474E89094C44Da98b954EedeAC495271d0F/logo.png' },
-  { symbol: 'WBTC', name: 'Wrapped Bitcoin', icon: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599/logo.png' },
-  { symbol: 'LINK', name: 'Chainlink', icon: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0x514910771AF9Ca656af840dff83E8264EcF986CA/logo.png' },
-  { symbol: 'UNI', name: 'Uniswap', icon: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984/logo.png' },
-  { symbol: 'AAVE', name: 'Aave', icon: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9/logo.png' },
-];
 
-const TokenSelectorModal: React.FC<TokenSelectorModalProps> = ({ onClose, onSelect }) => {
+const TokenSelectorModal: React.FC<TokenSelectorModalProps> = ({ onClose, onSelect, tokens }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredTokens = POPULAR_TOKENS.filter(
+  const filteredTokens = tokens.filter(
     token => token.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
       token.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -66,13 +58,16 @@ const TokenSelectorModal: React.FC<TokenSelectorModalProps> = ({ onClose, onSele
           <div className="mb-4">
             <h4 className="text-white/60 text-sm font-medium mb-2 px-2">Popular tokens</h4>
             <div className="grid grid-cols-4 gap-2">
-              {POPULAR_TOKENS.slice(0, 4).map(token => (
+              {tokens.slice(0, 4).map(token => (
                 <button
                   key={token.symbol}
-                  onClick={() => onSelect(token.symbol)}
+                  onClick={() => onSelect({
+                    symbol: token.symbol,
+                    name: token.name,
+                    address: token.address,
+                  })}
                   className="bg-[#212429] hover:bg-[#2c2f36] transition-colors rounded-xl p-2 flex flex-col items-center"
                 >
-                  <img src={token.icon} alt={token.name} className="w-8 h-8 rounded-full mb-1" />
                   <span className="text-white text-xs font-medium">{token.symbol}</span>
                 </button>
               ))}
@@ -83,10 +78,13 @@ const TokenSelectorModal: React.FC<TokenSelectorModalProps> = ({ onClose, onSele
             {filteredTokens.map(token => (
               <button
                 key={token.symbol}
-                onClick={() => onSelect(token.symbol)}
+                onClick={() => onSelect({
+                  symbol: token.symbol,
+                  name: token.name,
+                  address: token.address,
+                })}
                 className="w-full flex items-center p-3 hover:bg-[#212429] transition-colors rounded-xl mb-1"
               >
-                <img src={token.icon} alt={token.name} className="w-8 h-8 rounded-full mr-3" />
                 <div className="flex flex-col items-start">
                   <span className="text-white font-medium">{token.symbol}</span>
                   <span className="text-white/60 text-sm">{token.name}</span>
