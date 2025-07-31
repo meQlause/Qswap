@@ -2,10 +2,15 @@
 pragma solidity ^0.8.0;
 import "./qswapPair.sol";
 
+struct PairInfo {
+    address pairAddress;
+    bool isReverse;
+}
+
 contract QswapProxy {
     TokenBalanceUpdater public _tokenBalanceUpdaterContract;
     mapping(address => address) public getLTPair;
-    mapping(address => mapping(address => address)) public getPair;
+    mapping(address => mapping(address => PairInfo)) public getPair;
 
 
     constructor() {
@@ -14,11 +19,11 @@ contract QswapProxy {
 
     function createPair(address tokenX, uint256 amountTokenX, address tokenY, uint256 amountTokenY, uint256 fee) external returns (address pair) {
         require(tokenX != tokenY, "D0");
-        require(getPair[tokenX][tokenY] == address(0), "D1");
+        require(getPair[tokenX][tokenY].pairAddress == address(0), "D1");
         address liquidityToken = address(new QswapTokenCreator(0, string(abi.encodePacked(QswapTokenCreator(tokenX).name(), QswapTokenCreator(tokenY).name())), "QSLT", true, true));
         pair = address(new QswapConstantProductPair(tokenX, amountTokenX, tokenY, amountTokenY, fee, address(_tokenBalanceUpdaterContract), liquidityToken));
-        getPair[tokenX][tokenY] = pair;
-        getPair[tokenY][tokenX] = pair;
+        getPair[tokenX][tokenY] = PairInfo(pair, false);
+        getPair[tokenY][tokenX] = PairInfo(pair, true);
         getLTPair[liquidityToken] = pair;
 
         emit PairCreated(tokenX, tokenY, pair, liquidityToken);
@@ -50,14 +55,9 @@ contract QswapProxy {
 
     function _setIsReverse(address tokenX, address tokenY) private view returns (bool isReverse, address pairToUse) {
         
-        if (getPair[tokenX][tokenY] != address(0)) {
-            pairToUse = getPair[tokenX][tokenY];
-            isReverse = false;
-        } else if (getPair[tokenY][tokenX] != address(0)) {
-            pairToUse = getPair[tokenY][tokenX];
-            isReverse = true;
-        }
-        return (isReverse, pairToUse);
+    PairInfo memory val = getPair[tokenX][tokenY];
+    return (val.isReverse, val.pairAddress );
+
     }
 
     event PairCreated(address indexed tokenX, address indexed tokenY, address pair, address liquidityToken);

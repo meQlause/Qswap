@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "./tokenBalanceUpdater.sol";
+import "hardhat/console.sol";
 import "../libs/qswapSqrt.sol";
 
 
@@ -47,28 +48,35 @@ contract QswapConstantProductPair {
     }
 
     function swap(address addressTokenToswap, uint256 amountToSwap, bool isReverse, address to) external {
-        require(amountToSwap > 0, "A0");  // INSUFFICIENT_INPUT_AMOUNT
-        require(to != address(0), "A1");  // INVALID_RECIPIENT
-        
+    require(amountToSwap > 0, "A0");
+    require(to != address(0), "A1");
+
         (
-            uint256 k, uint256 reserve2, 
+            uint256 k, , uint256 scaledOut,
             address give, address get,
             uint256 effectiveAmountToSwap
-        ) 
-        = _getSwapOptions(amountToSwap, isReverse, addressTokenToswap);
+        ) = _getSwapOptions(amountToSwap, isReverse, addressTokenToswap);
 
-        require(k > 0, "B0");  // INSUFFICIENT_LIQUIDITY
-        uint256 amountToGet = reserve2 - (k / (reserve2 + effectiveAmountToSwap));
-        require(amountToGet > 0, "B1");  // INSUFFICIENT_OUTPUT_AMOUNT
+        uint256 scale = 1e8;
+        uint256 scaledSwap = effectiveAmountToSwap / scale;
+
+        uint256 denominator = scaledOut + scaledSwap;
+        require(denominator > 0, "Divide by zero");
+
+        uint256 newReserveOut = k / denominator;
+        require(scaledOut >= newReserveOut, "Underflow");
+
+        uint256 scaledAmountOut = scaledOut - newReserveOut;
+        uint256 amountToGet = scaledAmountOut * scale;
 
         _updateBalance(give, to, address(this), effectiveAmountToSwap);
-        
-        IERC20(get).approve(address(_tokenBalanceUpdater), amountToGet);
-        _updateBalance(get, address(this), to, amountToGet);
+
+        IERC20(get).transfer(tx.origin, amountToGet);
+
         _updateReserves();
 
         emit Swap(msg.sender, give, get, effectiveAmountToSwap, amountToGet);
-    }
+}
 
     function addLiquidity(uint256 amount, bool isReverse) external {
         require(amount > 0, "A0");  // INSUFFICIENT_INPUT_AMOUNT
@@ -122,20 +130,32 @@ contract QswapConstantProductPair {
         _tokenBalanceUpdater.updateBalance(tokenAdress, fromAddress, toAddress, amount);
     }
 
-    function _getSwapOptions(uint256 amountToSwap, bool isReverse, address addressTokenToswap) private view returns (uint256 k, uint256 reserve2, address give, address get, uint256 effectiveAmountToSwap) {
-        k = _reserveX * _reserveY;
-        effectiveAmountToSwap = amountToSwap * 997 / 1000;
+    function _getSwapOptions(uint256 amountToSwap, bool isReverse, address addressTokenToswap)
+    private view returns (uint256 k, uint256 scaledReserveIn, uint256 scaledReserveOut, address give, address get, uint256 effectiveAmountToSwap)
+    {
+        uint256 scale = 1e8;
+        effectiveAmountToSwap = (amountToSwap * (1000 - feePercentage)) / 1000;
 
-        if (isReverse) {
-            reserve2 = _reserveX;
+        uint256 reserveIn;
+        uint256 reserveOut;
+
+        if (!isReverse) {
+            reserveIn = _reserveX;
+            reserveOut = _reserveY;
             give = addressTokenToswap;
             get = address(tokenY);
         } else {
-            reserve2 = _reserveY;
-            give = address(tokenX);
-            get = addressTokenToswap;
+            reserveIn = _reserveY;
+            reserveOut = _reserveX;
+            give = addressTokenToswap;
+            get = address(tokenX);
         }
-        return (k, reserve2, give, get, effectiveAmountToSwap);
+
+        uint256 scaledIn = reserveIn / scale;
+        uint256 scaledOut = reserveOut / scale;
+        k = scaledIn * scaledOut;
+
+        return (k, scaledIn, scaledOut, give, get, effectiveAmountToSwap);
     }
 
     function _getLiquidityOptions(bool isReverse) private view returns (uint256 x, uint256 y, address xAddress, address yAddress) {
