@@ -1,35 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { RotateCcw, Info, X } from 'lucide-react';
-import { motion, AnimatePresence } from "framer-motion";
+import { RotateCcw, Info } from 'lucide-react';
+// import { motion, AnimatePresence } from "framer-motion";
 import TokenSelector from './TokenSelector';
-import SwapSettings from './SwapSettings';
+// import SwapSettings from './SwapSettings';
 import ConnectButton from '../UI/ConnectButton';
 import { useWallet } from '../../context/WalletContext';
 import { Token, TokenlistSwap } from '../../interfaces/Interfaces';
 import { getTokenInfo } from '../../utils/tokenDetails';
+import { getTokenBalance } from '../../utils/checkBalance';
 
-const modalVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1 },
-  exit: { opacity: 0, scale: 0.95 },
-};
+// const modalVariants = {
+//   hidden: { opacity: 0, scale: 0.95 },
+//   visible: { opacity: 1, scale: 1 },
+//   exit: { opacity: 0, scale: 0.95 },
+// };
 
 const SwapCard: React.FC = () => {
   const { account } = useWallet();
-  const [showSettings, setShowSettings] = useState(false);
-  const [amountToken1, setAmountToken1] = useState<number>(0);
+  // const [showSettings, setShowSettings] = useState(false);
+  const [amountToken1, setAmountToken1] = useState<{ amount: number, maxAmount: number }>(
+    { amount: 0, maxAmount: 0 }
+  );
   const [token1, setToken1] = useState<TokenlistSwap | null>();
-  const [amountToken2, setAmountToken2] = useState<number>(0);
+  const [amountToken2, setAmountToken2] = useState<{ amount: number, maxAmount: number }>(
+    { amount: 0, maxAmount: 0 }
+  );
   const [token2, setToken2] = useState<TokenlistSwap | null>();
   const [tokens, setTokens] = useState<TokenlistSwap[]>([])
-
   const handleReset = () => {
     setToken1(null)
     setToken2(null)
+    setAmountToken1({ amount: 0, maxAmount: 0 })
+    setAmountToken2({ amount: 0, maxAmount: 0 })
   };
 
-
-  useEffect(() => {
+  const refreshList = () => {
     const tokenList = localStorage.getItem("PairAddresses");
     const parsedList = tokenList ? JSON.parse(tokenList) : null;
     if (parsedList) {
@@ -40,14 +45,18 @@ const SwapCard: React.FC = () => {
           return {
             symbol: d.symbol,
             name: d.name,
-            address: d.address
+            address: d.address,
           }
         })
         setTokens(tokens)
       }
       fetchData()
     }
-  }, [token1])
+  }
+
+  useEffect(() => {
+    refreshList()
+  }, [])
 
   useEffect(() => {
     const tokenList = localStorage.getItem("PairAddresses");
@@ -71,6 +80,24 @@ const SwapCard: React.FC = () => {
     }
   }, [token1])
 
+  useEffect(() => {
+    if (token1) {
+      const fetchData = async () => {
+        const balance = await getTokenBalance(token1.address)
+        setAmountToken1(prev => ({ ...prev, maxAmount: balance }))
+      }
+      fetchData()
+    }
+
+    if (token2) {
+      const fetchData = async () => {
+        const balance = await getTokenBalance(token2.address)
+        setAmountToken2(prev => ({ ...prev, maxAmount: balance }))
+      }
+      fetchData()
+    }
+  }, [token1, token2])
+
 
   return (
     tokens.length === 0 ? (
@@ -90,6 +117,13 @@ const SwapCard: React.FC = () => {
           <p className="text-white/50 text-xs">
             Please Create Pool to begin swapping
           </p>
+          <button
+            onClick={refreshList}
+            title="Refresh List"
+            className="bg-[#282c34] my-2 hover:bg-[#31353e] transition-colors w-10 h-10 rounded-xl flex items-center justify-center border border-[#191b1f]"
+          >
+            <RotateCcw className="w-5 h-5 text-white/80" />
+          </button>
         </div>
       </div>
     ) : (
@@ -104,7 +138,7 @@ const SwapCard: React.FC = () => {
           </button> */}
         </div>
 
-        <AnimatePresence>
+        {/* <AnimatePresence>
           {showSettings && (
             <motion.div
               className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm"
@@ -128,23 +162,23 @@ const SwapCard: React.FC = () => {
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
+        </AnimatePresence> */}
 
         <div className="p-4">
           <div className="mb-1 px-2 flex justify-between items-center">
             <span className="text-sm text-white/60">From</span>
-            <span className="text-sm text-white/60">Balance: 0.0</span>
+            {amountToken1.maxAmount !== 0 && (<span className="text-sm text-white/60">Balance : {amountToken1.maxAmount}</span>)}
           </div>
 
           <div className="bg-[#212429] rounded-2xl p-4 mb-1">
             <div className="flex justify-between">
               <input
                 type="text"
-                disabled={token1 ? true : false}
+                disabled={token1 ? false : true}
                 className="bg-transparent text-2xl text-white outline-none w-3/5"
                 placeholder="0.0"
-                value={amountToken1}
-                onChange={(e) => setAmountToken1(Number(e.target.value ? e.target.value : 0))}
+                value={amountToken1.amount}
+                onChange={(e) => setAmountToken1({ ...amountToken1, amount: Number(e.target.value) > amountToken1.maxAmount ? amountToken1.maxAmount : Number(e.target.value) })}
               />
               <TokenSelector
                 disabled={token1 ? true : false}
@@ -167,19 +201,17 @@ const SwapCard: React.FC = () => {
 
           <div className="mb-1 mt-2 px-2 flex justify-between items-center">
             <span className="text-sm text-white/60">To (estimated)</span>
-            <span className="text-sm text-white/60">Balance: 0.0</span>
+            {amountToken2.maxAmount !== 0 && (<span className="text-sm text-white/60">Balance : {amountToken2.maxAmount}</span>)}
           </div>
-
           <div className="bg-[#212429] rounded-2xl p-4 mb-4">
             <div className="flex justify-between">
               <input
                 type="text"
                 className="bg-transparent text-2xl text-white outline-none w-3/5"
                 placeholder="0.0"
-                disabled={token1 ? false : true}
-                value={amountToken2}
-                onChange={(e) => setAmountToken2(Number(e.target.value ? e.target.value : 0))}
-              />
+                disabled={token2 ? false : true}
+                value={amountToken2.amount}
+                onChange={(e) => setAmountToken2({ ...amountToken2, amount: Number(e.target.value) > amountToken2.maxAmount ? amountToken2.maxAmount : Number(e.target.value) })} />
               <TokenSelector
                 disabled={token1 ? false : true}
                 defaultToken={token2?.name || "Select"}

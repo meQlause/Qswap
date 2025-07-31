@@ -18,8 +18,6 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
 
   const networks = [
     { name: 'Ethereum', color: 'bg-green-500' },
-    { name: 'Polygon', color: 'bg-yellow-500' },
-    { name: 'ZkSync', color: 'bg-red-500' },
     { name: 'Radix', color: 'bg-blue-500' }
   ];
 

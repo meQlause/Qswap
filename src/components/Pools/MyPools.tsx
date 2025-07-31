@@ -10,12 +10,13 @@ import { getTokenInfo } from "../../utils/tokenDetails";
 const MyPools: React.FC<handleTabChange> = ({ handleTabChange }: handleTabChange) => {
     const { account } = useWallet()
     const [pools, setPools] = useState<Pool[]>([]);
+    console.log(pools)
     useEffect(() => {
         const contractAddresses = localStorage.getItem("ContractPairAddresses");
 
         if (contractAddresses) {
-            const parsedAddresses = JSON.parse(contractAddresses); // should be an object
-            const addressList = Object.keys(parsedAddresses) as string[]; // or Object.keys() if keys are addresses
+            const parsedAddresses = JSON.parse(contractAddresses);
+            const addressList = Object.keys(parsedAddresses) as string[];
 
             const fetchAllData = async () => {
                 try {
