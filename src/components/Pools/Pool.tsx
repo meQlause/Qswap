@@ -108,19 +108,19 @@ const PoolsCard: React.FC = () => {
   const recordPair = (x: string, y: string, pair: string, lt: string) => {
     const pairAddressesStr = localStorage.getItem("PairAddresses");
     const contractPairAddressesStr = localStorage.getItem("ContractPairAddresses");
-    const pairAddresses: Record<string, Record<string, string>> = pairAddressesStr ? JSON.parse(pairAddressesStr) : {};
+    const pairAddresses: Record<string, Record<string, { address: string, reverse: boolean }>> = pairAddressesStr ? JSON.parse(pairAddressesStr) : {};
     const contractPairAddresses: Record<string, { lt: string }> = contractPairAddressesStr ? JSON.parse(contractPairAddressesStr) : {};
     if (!pairAddresses[x]) {
       pairAddresses[x] = {};
     }
 
-    pairAddresses[x][y] = pair;
+    pairAddresses[x][y] = { address: pair, reverse: false };
 
     if (!pairAddresses[y]) {
       pairAddresses[y] = {};
     }
 
-    pairAddresses[y][x] = pair;
+    pairAddresses[y][x] = { address: pair, reverse: true };
     contractPairAddresses[pair] = { lt };
     localStorage.setItem("PairAddresses", JSON.stringify(pairAddresses));
     localStorage.setItem("ContractPairAddresses", JSON.stringify(contractPairAddresses));

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { RotateCcw, Info } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 // import { motion, AnimatePresence } from "framer-motion";
 import TokenSelector from './TokenSelector';
 // import SwapSettings from './SwapSettings';
@@ -8,6 +8,9 @@ import { useWallet } from '../../context/WalletContext';
 import { Token, TokenlistSwap } from '../../interfaces/Interfaces';
 import { getTokenInfo } from '../../utils/tokenDetails';
 import { getTokenBalance } from '../../utils/checkBalance';
+import { getPairInfo } from '../../utils/getPairInfo';
+import { swapToken } from '../../utils/swap';
+
 
 // const modalVariants = {
 //   hidden: { opacity: 0, scale: 0.95 },
@@ -22,16 +25,15 @@ const SwapCard: React.FC = () => {
     { amount: 0, maxAmount: 0 }
   );
   const [token1, setToken1] = useState<TokenlistSwap | null>();
-  const [amountToken2, setAmountToken2] = useState<{ amount: number, maxAmount: number }>(
-    { amount: 0, maxAmount: 0 }
-  );
+  const [predictedOut, setPredictedOut] = useState<number>(0);
   const [token2, setToken2] = useState<TokenlistSwap | null>();
   const [tokens, setTokens] = useState<TokenlistSwap[]>([])
   const handleReset = () => {
     setToken1(null)
     setToken2(null)
+    setPredictedOut(0)
     setAmountToken1({ amount: 0, maxAmount: 0 })
-    setAmountToken2({ amount: 0, maxAmount: 0 })
+    refreshList()
   };
 
   const refreshList = () => {
@@ -51,6 +53,18 @@ const SwapCard: React.FC = () => {
         setTokens(tokens)
       }
       fetchData()
+    }
+  }
+
+  const swap = async () => {
+    const proxyAddress = localStorage.getItem("ProxyAddress")
+    if (proxyAddress) {
+      try {
+        const data = await swapToken(proxyAddress, token1?.address as string, token2?.address as string, String(amountToken1.amount))
+        console.log(data)
+      } catch (error: any) {
+        console.error(error)
+      }
     }
   }
 
@@ -89,15 +103,41 @@ const SwapCard: React.FC = () => {
       fetchData()
     }
 
-    if (token2) {
+    if (token1 && token2) {
+      const stored = localStorage.getItem("PairAddresses");
+      const tokenList = stored ? JSON.parse(stored) : {};
       const fetchData = async () => {
-        const balance = await getTokenBalance(token2.address)
-        setAmountToken2(prev => ({ ...prev, maxAmount: balance }))
+        const pairInfo = tokenList[token1.address][token2.address];
+        const data = await getPairInfo(pairInfo.address);
+
+        const reserveIn = pairInfo.reverse ? parseFloat(data?.reserveY) / 1e18 : parseFloat(data?.reserveX) / 1e18;
+        const reserveOut = pairInfo.reverse ? parseFloat(data?.reserveX) / 1e18 : parseFloat(data?.reserveY) / 1e18;
+        const fee = parseFloat(data?.fee); // e.g. 3
+
+        const amountIn = parseFloat(String(amountToken1.amount));
+
+        console.log("Reserve In:", reserveIn);
+        console.log("Reserve Out:", reserveOut);
+        console.log("Fee:", fee);
+        console.log("Amount In:", amountIn);
+
+        // Apply Uniswap-style constant product AMM formula
+        const amountInWithFee = amountIn * (1000 - fee); // no division yet
+        const denominator = reserveIn * 1000 + amountInWithFee;
+
+        if (denominator === 0) {
+          setPredictedOut(0);
+          return;
+        }
+
+        const amountOut = (amountInWithFee * reserveOut) / denominator;
+
+        console.log("Predicted Out:", amountOut);
+        setPredictedOut(amountOut);
       }
       fetchData()
     }
-  }, [token1, token2])
-
+  }, [token1, token2, amountToken1.amount])
 
   return (
     tokens.length === 0 ? (
@@ -201,7 +241,6 @@ const SwapCard: React.FC = () => {
 
           <div className="mb-1 mt-2 px-2 flex justify-between items-center">
             <span className="text-sm text-white/60">To (estimated)</span>
-            {amountToken2.maxAmount !== 0 && (<span className="text-sm text-white/60">Balance : {amountToken2.maxAmount}</span>)}
           </div>
           <div className="bg-[#212429] rounded-2xl p-4 mb-4">
             <div className="flex justify-between">
@@ -209,9 +248,9 @@ const SwapCard: React.FC = () => {
                 type="text"
                 className="bg-transparent text-2xl text-white outline-none w-3/5"
                 placeholder="0.0"
-                disabled={token2 ? false : true}
-                value={amountToken2.amount}
-                onChange={(e) => setAmountToken2({ ...amountToken2, amount: Number(e.target.value) > amountToken2.maxAmount ? amountToken2.maxAmount : Number(e.target.value) })} />
+                disabled={true}
+                value={predictedOut}
+              />
               <TokenSelector
                 disabled={token1 ? false : true}
                 defaultToken={token2?.name || "Select"}
@@ -221,25 +260,13 @@ const SwapCard: React.FC = () => {
             </div>
             <div className="mt-2 text-sm text-white/60">~ Convertion rate is not available</div>
           </div>
-
-          <div className="bg-[#212429] rounded-2xl p-3 mb-4 flex justify-between items-center text-sm">
-            <div className="flex items-center">
-              <span className="text-white/80">1 {token1?.name} = 2,054.34 {token2?.name}</span>
-              <Info className="ml-1 w-3.5 h-3.5 text-white/60" />
-            </div>
-            <button>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white/60">
-                <path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z" fill="currentColor" />
-              </svg>
-            </button>
-          </div>
           {
             account ? (
-              <button className="w-full py-4 bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium rounded-2xl text-base">
+              <button disabled={predictedOut === 0} onClick={swap} className="w-full py-4 mt-4 bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium rounded-2xl text-base">
                 swap
               </button>
             ) : (
-              <div className="w-full py-4 bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium rounded-2xl text-base flex justify-center">
+              <div className="w-full py-4 mt-4 bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium rounded-2xl text-base flex justify-center">
                 <ConnectButton />
               </div>
             )
