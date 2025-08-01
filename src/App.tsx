@@ -55,19 +55,19 @@ const WelcomeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
           </h3>
 
           <div className="space-y-3 text-white/80">
-            <p>We've deployed our contract on Mega Testnet!</p>
-            <p>To use our features, please make sure to:</p>
+            <p>Our testnet is still in development. Please use the testnet environment for now.</p>
+            <p>To use our features, make sure to follow these steps:</p>
             <ol className="list-decimal list-inside text-left space-y-2">
               <li>Open MetaMask</li>
-              <li>Switch to Mega Testnet</li>
-              <li>If Mega Testnet is not added, add it with these details:</li>
+              <li>Switch to the Mega Testnet (do not use Mainnet)</li>
+              <li>Then proceed with the following steps:</li>
             </ol>
             <div className="bg-[#282c34] rounded-xl p-4 mt-2 text-left">
-              <p className="text-white/60 text-sm mb-1">Network Details:</p>
-              <p className="text-white text-sm">Network Name: Mega Testnet</p>
-              <p className="text-white text-sm">RPC URL: https://rpc.megatestnet.com</p>
-              <p className="text-white text-sm">Chain ID: 1337</p>
-              <p className="text-white text-sm">Currency Symbol: MEGA</p>
+              <p className="text-white/60 text-sm mb-1">Step-by-step guide:</p>
+              <p className="text-white text-sm">Go to the "Tokens" section, create at least 2 tokens, and add their addresses to your MetaMask wallet.</p>
+              <p className="text-white text-sm">Navigate to the "Pool" section and create a new liquidity pool using the tokens you just created.</p>
+              <p className="text-white text-sm">If you didn’t save the token addresses, you can find them in local storage. Click on your wallet address key to view details.</p>
+              <p className="text-white text-sm">Once the pool is created, you can start swapping your tokens.</p>
             </div>
           </div>
 
