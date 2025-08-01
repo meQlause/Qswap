@@ -91,7 +91,3 @@ src/
 - Currently relies on **local storage** for data — this is temporary and will be replaced with backend integration (e.g., Firebase, Supabase, or custom API)
 
 ---
-
-## 📄 License
-
-MIT License — see [LICENSE](./LICENSE) for full terms.
