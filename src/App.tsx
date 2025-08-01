@@ -38,7 +38,7 @@ const WelcomeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-[#212429] rounded-2xl p-6 max-w-md w-full mx-4 relative"
+        className="bg-[#212429] rounded-2xl p-6 max-w-[700px] w-full mx-4 relative"
       >
         <button
           onClick={onClose}
@@ -64,10 +64,13 @@ const WelcomeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
             </ol>
             <div className="bg-[#282c34] rounded-xl p-4 mt-2 text-left">
               <p className="text-white/60 text-sm mb-1">Step-by-step guide:</p>
-              <p className="text-white text-sm">Go to the "Tokens" section, create at least 2 tokens, and add their addresses to your MetaMask wallet.</p>
-              <p className="text-white text-sm">Navigate to the "Pool" section and create a new liquidity pool using the tokens you just created.</p>
-              <p className="text-white text-sm">If you didn’t save the token addresses, you can find them in local storage. Click on your wallet address key to view details.</p>
-              <p className="text-white text-sm">Once the pool is created, you can start swapping your tokens.</p>
+              <p className="text-white text-sm">1. Go to the "Tokens" section, create at least 2 tokens, and add their addresses to your MetaMask wallet.</p>
+              <br />
+              <p className="text-white text-sm">2. Navigate to the "Pool" section and create a new liquidity pool using the tokens you just created.</p>
+              <br />
+              <p className="text-white text-sm">3. If you didn’t save the token addresses, you can find them in local storage. Click on your wallet address key to view details.</p>
+              <br />
+              <p className="text-white text-sm">4. Once the pool is created, you can start swapping your tokens.</p>
             </div>
           </div>
 
