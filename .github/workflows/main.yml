@@ -45,16 +45,12 @@ jobs:
       - name: Deploy to server
         run: |
           ssh ardial@92.113.145.8 '
-            # Switch to root user and execute commands
             sudo bash -c "
               # Pull the latest image
               docker pull ${{ env.DOCKER_IMAGE }}:prod
               
-              containers=$(docker ps -a -q --filter ancestor=${{ env.DOCKER_IMAGE }}:prod)
-              if [ -n "$containers" ]; then
-                docker stop $containers
-                docker rm $containers
-              fi
+              docker stop ${{ env.DOCKER_IMAGE }}  2>/dev/null || true
+              docker rm ${{ env.DOCKER_IMAGE }}  2>/dev/null || true
               
               port_containers=$(docker ps -q --filter "publish=3000")
               if [ -n "$port_containers" ]; then
@@ -62,7 +58,7 @@ jobs:
                 docker rm $port_containers
               fi
               
-              lsof -ti:4001 | xargs kill -9 2>/dev/null || true
+              lsof -ti:3000 | xargs kill -9 2>/dev/null || true
               
               sleep 2
               
@@ -70,6 +66,7 @@ jobs:
               docker image prune -f
               
               docker run -d \
+                --name ${{ env.DOCKER_IMAGE }} \
                 --restart unless-stopped \
                 -p 127.0.0.1:3000:3000 \
                 ${{ env.DOCKER_IMAGE }}:prod
