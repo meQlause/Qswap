@@ -50,26 +50,27 @@ jobs:
               # Pull the latest image
               docker pull ${{ env.DOCKER_IMAGE }}:prod
               
-              # Stop and remove all containers if any exist
-              if [ \$(docker ps -aq | wc -l) -gt 0 ]; then
-                docker stop \$(docker ps -aq)
-                docker rm \$(docker ps -aq)
+              containers=$(docker ps -a -q --filter ancestor=${{ env.DOCKER_IMAGE }}:prod)
+              if [ -n "$containers" ]; then
+                docker stop $containers
+                docker rm $containers
               fi
               
-              # Kill any process using port 3001
-              lsof -ti:3001 | xargs kill -9 2>/dev/null || true
-              # Kill any process using port 3000
-              lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+              port_containers=$(docker ps -q --filter "publish=3000")
+              if [ -n "$port_containers" ]; then
+                docker stop $port_containers
+                docker rm $port_containers
+              fi
               
-              # Run the new container
-              docker run -d \
-                --restart unless-stopped \
-                -p 127.0.0.1:3001:3001 \
-                ${{ env.DOCKER_IMAGE }}:prod
-            
+              lsof -ti:4001 | xargs kill -9 2>/dev/null || true
+              
+              sleep 2
+              
+              docker container prune -f
+              docker image prune -f
+              
               docker run -d \
                 --restart unless-stopped \
                 -p 127.0.0.1:3000:3000 \
-                ardialqlause/personal-landing-page:prod
-            "
+                ${{ env.DOCKER_IMAGE }}:prod
           '
