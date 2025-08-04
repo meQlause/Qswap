@@ -49,8 +49,8 @@ jobs:
               # Pull the latest image
               docker pull ${{ env.DOCKER_IMAGE }}:prod
               
-              docker stop ${{ env.DOCKER_IMAGE }}  2>/dev/null || true
-              docker rm ${{ env.DOCKER_IMAGE }}  2>/dev/null || true
+              docker stop qswap 2>/dev/null || true
+              docker rm qswap  2>/dev/null || true
               
               port_containers=$(docker ps -q --filter "publish=3000")
               if [ -n "$port_containers" ]; then
@@ -66,7 +66,7 @@ jobs:
               docker image prune -f
               
               docker run -d \
-                --name ${{ env.DOCKER_IMAGE }} \
+                --name qswap \
                 --restart unless-stopped \
                 -p 127.0.0.1:3000:3000 \
                 ${{ env.DOCKER_IMAGE }}:prod
