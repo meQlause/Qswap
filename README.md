@@ -257,12 +257,6 @@ npx hardhat deploy   # Deploy contracts
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
 ## ⚠️ Security Notice
 
 This is a development project. Do not use with real assets or on mainnet without proper security audits and testing.
