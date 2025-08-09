@@ -10,7 +10,7 @@ export const abi = [
 
 export const getPairInfo = async (pairAddress: string) => {
     try {
-        const provider = new JsonRpcProvider("http://127.0.0.1:8545/");
+        const provider = new JsonRpcProvider("https://carrot.megaeth.com/rpc");
         const pairContract = new ethers.Contract(pairAddress, abi, provider);
         const tokenX = await pairContract.tokenX();
         const tokenY = await pairContract.tokenY();

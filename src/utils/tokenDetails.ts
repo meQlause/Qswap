@@ -13,7 +13,7 @@ const ERC20_ABI = [
 
 export async function getTokenInfo(tokenAddress: string): Promise<Token | null> {
     try {
-        const provider = new JsonRpcProvider("http://127.0.0.1:8545/");
+        const provider = new JsonRpcProvider("https://carrot.megaeth.com/rpc");
         const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
         const name = await tokenContract.name();
         const symbol = await tokenContract.symbol();
