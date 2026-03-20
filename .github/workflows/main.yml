@@ -52,13 +52,13 @@ jobs:
               docker stop qswap 2>/dev/null || true
               docker rm qswap  2>/dev/null || true
               
-              port_containers=$(docker ps -q --filter "publish=3001")
+              port_containers=$(docker ps -q --filter "publish=3003")
               if [ -n "$port_containers" ]; then
                 docker stop $port_containers
                 docker rm $port_containers
               fi
               
-              lsof -ti:3001 | xargs kill -9 2>/dev/null || true
+              lsof -ti:3003 | xargs kill -9 2>/dev/null || true
               
               sleep 2
               
