@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
-// import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import TokenSelector from './TokenSelector';
 // import SwapSettings from './SwapSettings';
 import ConnectButton from '../UI/ConnectButton';
@@ -20,6 +20,35 @@ import { swapToken } from '../../utils/swap';
 
 const SwapCard: React.FC = () => {
   const { account } = useWallet();
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const StepIndicator = ({ step, current, label }: { step: number; current: number; label: string }) => {
+    const isCompleted = current > step;
+    const isActive = current === step;
+
+    return (
+      <div className="flex items-center space-x-3">
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+          isCompleted ? "bg-green-500 border-green-500" :
+          isActive ? "border-pink-500 text-pink-500 animate-pulse" :
+          "border-white/10 text-white/30"
+        }`}>
+          {isCompleted ? (
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <span className="text-sm font-bold">{step}</span>
+          )}
+        </div>
+        <span className={`text-sm ${isActive ? "text-white font-medium" : isCompleted ? "text-white/60" : "text-white/30"}`}>
+          {label}
+        </span>
+      </div>
+    );
+  };
+
   // const [showSettings, setShowSettings] = useState(false);
   const [amountToken1, setAmountToken1] = useState<{ amount: number, maxAmount: number }>(
     { amount: 0, maxAmount: 0 }
@@ -60,9 +89,23 @@ const SwapCard: React.FC = () => {
     const proxyAddress = localStorage.getItem("ProxyAddress")
     if (proxyAddress) {
       try {
-        const data = await swapToken(proxyAddress, token1?.address as string, token2?.address as string, String(amountToken1.amount))
+        setIsProcessing(true);
+        setCurrentStep(1);
+        const data = await swapToken(
+          proxyAddress, 
+          token1?.address as string, 
+          token2?.address as string, 
+          String(amountToken1.amount),
+          (step) => setCurrentStep(step)
+        )
         console.log(data)
+        setAmountToken1(prev => ({ ...prev, amount: 0 }));
+        setPredictedOut(0);
+        setIsProcessing(false);
+        setCurrentStep(0);
       } catch (error: any) {
+        setIsProcessing(false);
+        setCurrentStep(0);
         console.error(error)
       }
     }
@@ -260,10 +303,24 @@ const SwapCard: React.FC = () => {
             </div>
             <div className="mt-2 text-sm text-white/60">~ Convertion rate is not available</div>
           </div>
+          <AnimatePresence>
+            {isProcessing && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="bg-[#212429] rounded-2xl p-4 space-y-3 mb-4 overflow-hidden"
+              >
+                <StepIndicator step={1} current={currentStep} label={`Approving ${token1?.symbol}`} />
+                <StepIndicator step={2} current={currentStep} label="Swapping Tokens" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {
             account ? (
-              <button disabled={predictedOut === 0} onClick={swap} className="w-full py-4 mt-4 bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium rounded-2xl text-base">
-                swap
+              <button disabled={predictedOut === 0 || isProcessing} onClick={swap} className="w-full py-4 bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium rounded-2xl text-base disabled:opacity-50 disabled:cursor-not-allowed">
+                {isProcessing ? "Processing..." : "Swap"}
               </button>
             ) : (
               <div className="w-full py-4 mt-4 bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium rounded-2xl text-base flex justify-center">

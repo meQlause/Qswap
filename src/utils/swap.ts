@@ -18,19 +18,26 @@ export const swapToken = async (
     xAddress: string,
     yAddress: string,
     xAmount: string,
+    onProgress?: (step: number) => void
 ) => {
     const balanceUpdater = localStorage.getItem("UpdaterAddress")
+    if (typeof window.ethereum === 'undefined') {
+        throw new Error('Please install MetaMask to swap tokens');
+    }
 
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
     const proxy = new ethers.Contract(proxyAddress, proxyAbi, signer);
 
     // Approve tokenX
+    if (onProgress) onProgress(1);
     const tokenX = new ethers.Contract(xAddress, abi, signer);
     const approveTxX = await tokenX.approve(balanceUpdater, ethers.parseUnits(xAmount, 18));
     await approveTxX.wait();
     console.log("TokenX approved");
 
+    // Swap
+    if (onProgress) onProgress(2);
     const tx = await proxy.swap(
         xAddress,
         yAddress,

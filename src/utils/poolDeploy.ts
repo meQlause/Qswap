@@ -18,25 +18,35 @@ const deployNewPool = async (
     xAddress: string,
     xAmount: string,
     yAddress: string,
-    yAmount: string, fee: number) => {
+    yAmount: string, 
+    fee: number,
+    onProgress?: (step: number) => void
+) => {
     const balanceUpdater = localStorage.getItem("UpdaterAddress")
 
+    if (typeof window.ethereum === 'undefined') {
+        throw new Error('Please install MetaMask to deploy pools');
+    }
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
     const proxy = new ethers.Contract(proxyAddress, proxyAbi, signer);
 
     // Approve tokenX
+    if (onProgress) onProgress(1);
     const tokenX = new ethers.Contract(xAddress, abi, signer);
     const approveTxX = await tokenX.approve(balanceUpdater, ethers.parseUnits(xAmount, 18));
     await approveTxX.wait();
     console.log("TokenX approved");
 
     // Approve tokenY
+    if (onProgress) onProgress(2);
     const tokenY = new ethers.Contract(yAddress, abi, signer);
     const approveTxY = await tokenY.approve(balanceUpdater, ethers.parseUnits(yAmount, 18));
     await approveTxY.wait();
     console.log("TokenY approved");
 
+    // Create Pair
+    if (onProgress) onProgress(3);
     const tx = await proxy.createPair(
         xAddress,
         parseUnits(xAmount, 18),

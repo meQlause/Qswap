@@ -36,6 +36,34 @@ const PoolsCard: React.FC = () => {
     isOpen: false,
     message: '',
   });
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const StepIndicator = ({ step, current, label }: { step: number; current: number; label: string }) => {
+    const isCompleted = current > step;
+    const isActive = current === step;
+
+    return (
+      <div className="flex items-center space-x-3">
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+          isCompleted ? "bg-green-500 border-green-500" :
+          isActive ? "border-pink-500 text-pink-500 animate-pulse" :
+          "border-white/10 text-white/30"
+        }`}>
+          {isCompleted ? (
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <span className="text-sm font-bold">{step}</span>
+          )}
+        </div>
+        <span className={`text-sm ${isActive ? "text-white font-medium" : isCompleted ? "text-white/60" : "text-white/30"}`}>
+          {label}
+        </span>
+      </div>
+    );
+  };
 
   const verificateAddress = async (address: string, field: "x" | "y") => {
     if (address.length < 42) {
@@ -144,9 +172,13 @@ const PoolsCard: React.FC = () => {
     }
 
     try {
+      setIsProcessing(true);
+      setCurrentStep(1);
 
       listener(proxyAddress, (x, y, pair, lt) => {
         recordPair(x, y, pair, lt);
+        setIsProcessing(false);
+        setCurrentStep(0);
         setModalMessage({
           isOpen: true,
           type: 'success',
@@ -166,9 +198,12 @@ const PoolsCard: React.FC = () => {
         String(tokenX.amount + 1),
         tokenY.address,
         String(tokenY.amount + 1),
-        fee
+        fee,
+        (step) => setCurrentStep(step)
       )
     } catch (error: any) {
+      setIsProcessing(false);
+      setCurrentStep(0);
       setModalMessage({
         isOpen: true,
         type: 'error',
@@ -404,11 +439,26 @@ const PoolsCard: React.FC = () => {
                       </div>
                     </div>
 
+                    <AnimatePresence>
+                      {isProcessing && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="bg-[#212429] rounded-2xl p-4 space-y-3 overflow-hidden"
+                        >
+                          <StepIndicator step={1} current={currentStep} label="Approving Token X" />
+                          <StepIndicator step={2} current={currentStep} label="Approving Token Y" />
+                          <StepIndicator step={3} current={currentStep} label="Creating Pool" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <button
-                      disabled={tokenX.amount <= 0 || tokenY.amount <= 0}
+                      disabled={tokenX.amount <= 0 || tokenY.amount <= 0 || isProcessing}
                       onClick={async () => await handleAddLiquidity()}
                       className="w-full bg-pink-500 hover:bg-pink-600 transition-colors text-white font-medium py-3 px-6 rounded-2xl text-sm mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
-                      Add Liquidity
+                      {isProcessing ? "Processing..." : "Add Liquidity"}
                     </button>
                   </div>
                 </div>

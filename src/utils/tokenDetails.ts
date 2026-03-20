@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { JsonRpcProvider } from "ethers/providers";
 import { formatUnits } from "ethers/utils";
 import { Token } from "../interfaces/Interfaces";
+import { RPC_URL } from "../config/rpc";
 
 const ERC20_ABI = [
     "function name() view returns (string)",
@@ -13,7 +14,7 @@ const ERC20_ABI = [
 
 export async function getTokenInfo(tokenAddress: string): Promise<Token | null> {
     try {
-        const provider = new JsonRpcProvider("http://127.0.0.1:8545/");
+        const provider = new JsonRpcProvider(RPC_URL);
         const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
         const name = await tokenContract.name();
         const symbol = await tokenContract.symbol();

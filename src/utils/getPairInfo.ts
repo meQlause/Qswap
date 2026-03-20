@@ -1,4 +1,5 @@
 import { ethers, JsonRpcProvider } from "ethers";
+import { RPC_URL } from "../config/rpc";
 
 export const abi = [
     "function tokenX() view returns (address)",
@@ -10,7 +11,7 @@ export const abi = [
 
 export const getPairInfo = async (pairAddress: string) => {
     try {
-        const provider = new JsonRpcProvider("http://127.0.0.1:8545/");
+        const provider = new JsonRpcProvider(RPC_URL);
         const pairContract = new ethers.Contract(pairAddress, abi, provider);
         const tokenX = await pairContract.tokenX();
         const tokenY = await pairContract.tokenY();

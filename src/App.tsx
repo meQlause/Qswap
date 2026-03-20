@@ -60,6 +60,7 @@ const WelcomeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
             <ol className="list-decimal list-inside text-left space-y-2">
               <li>Open MetaMask</li>
               <li>Switch to the Mega Testnet (do not use Mainnet)</li>
+              <li className="text-yellow-500 font-medium">Please use <span className="bg-black/20 px-2 py-0.5 rounded select-all">https://blockchain.ardial.my.id</span> with Chain ID <span className="bg-black/20 px-2 py-0.5 rounded select-all">1337</span></li>
               <li>Then proceed with the following steps:</li>
             </ol>
             <div className="bg-[#282c34] rounded-xl p-4 mt-2 text-left">
