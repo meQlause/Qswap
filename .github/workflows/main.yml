@@ -2,7 +2,7 @@ name: Docker Development Build
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["main"]
   workflow_dispatch:
 
 env:
@@ -29,7 +29,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.prod
+          file: ./Dockerfile
           push: true
           tags: ${{ env.DOCKER_IMAGE }}:prod
           cache-from: type=gha
@@ -40,11 +40,11 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H 92.113.145.8 >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
-          ssh ardial@92.113.145.8 '
+          ssh ${{ secrets.USER }}@${{ secrets.HOST }} '
             sudo bash -c "
               # Pull the latest image
               docker pull ${{ env.DOCKER_IMAGE }}:prod
@@ -52,13 +52,13 @@ jobs:
               docker stop qswap 2>/dev/null || true
               docker rm qswap  2>/dev/null || true
               
-              port_containers=$(docker ps -q --filter "publish=3000")
+              port_containers=$(docker ps -q --filter "publish=3001")
               if [ -n "$port_containers" ]; then
                 docker stop $port_containers
                 docker rm $port_containers
               fi
               
-              lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+              lsof -ti:3001 | xargs kill -9 2>/dev/null || true
               
               sleep 2
               
@@ -68,7 +68,7 @@ jobs:
               docker run -d \
                 --name qswap \
                 --restart unless-stopped \
-                -p 127.0.0.1:3000:3000 \
+                -p 127.0.0.1:3003:80 \
                 ${{ env.DOCKER_IMAGE }}:prod
             "
           '

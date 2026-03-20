@@ -3,10 +3,21 @@ pragma solidity ^0.8.0;
 
 interface IERC20 {
     function totalSupply() external view returns (uint256);
+
     function balanceOf(address account) external view returns (uint256);
-    function transfer(address recipient, uint256 amount) external returns (bool);
+
+    function transfer(
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+
     function approve(address spender, uint256 amount) external returns (bool);
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
 }
 
 contract QswapTokenCreator is IERC20 {
@@ -17,45 +28,59 @@ contract QswapTokenCreator is IERC20 {
     uint256 public totalSupply;
     uint256 public holderCount;
     mapping(address => bool) private _isKnown;
-    uint8 public decimals = 18;  
+    uint8 public decimals = 18;
 
     mapping(address => uint256) public balanceOf;
 
     mapping(address => mapping(address => uint256)) public allowance;
 
     event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
     event Mint(address indexed to, uint256 amount);
     event Burn(address indexed from, uint256 amount);
 
-    constructor(uint256 initialSupply, string memory _name, string memory _symbol, bool _isMintable, bool _isBurnable) {
+    constructor(
+        uint256 initialSupply,
+        string memory _name,
+        string memory _symbol,
+        bool _isMintable,
+        bool _isBurnable
+    ) {
         isMintable = _isMintable;
         isBurnable = _isBurnable;
-        name = _name;  
-        symbol = _symbol;  
-        totalSupply = initialSupply * (10 ** uint256(decimals));  
+        name = _name;
+        symbol = _symbol;
+        totalSupply = initialSupply * (10 ** uint256(decimals));
         _updateHolder(msg.sender);
-        
-        balanceOf[msg.sender] = totalSupply;  
+
+        balanceOf[msg.sender] = totalSupply;
     }
 
     function transfer(address recipient, uint256 amount) public returns (bool) {
         require(balanceOf[msg.sender] >= amount, "Insufficient balance");
         _updateHolder(recipient);
-        
+
         balanceOf[msg.sender] -= amount;
         balanceOf[recipient] += amount;
         emit Transfer(msg.sender, recipient, amount);
         return true;
     }
 
-    function approve(address spender, uint256 amount) public returns (bool) {        
+    function approve(address spender, uint256 amount) public returns (bool) {
         allowance[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
         return true;
     }
 
-    function transferFrom(address sender, address recipient, uint256 amount) public returns (bool) {
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) public returns (bool) {
         require(balanceOf[sender] >= amount, "Insufficient balance");
         require(allowance[sender][msg.sender] >= amount, "Allowance exceeded");
         _updateHolder(recipient);
@@ -71,19 +96,22 @@ contract QswapTokenCreator is IERC20 {
         require(isMintable, "Minting is not allowed");
         require(to != address(0), "Cannot mint to the zero address");
 
-        totalSupply += amount;  
-        balanceOf[to] += amount;  
-        emit Mint(to, amount);  
+        totalSupply += amount;
+        balanceOf[to] += amount;
+        emit Mint(to, amount);
         return true;
     }
 
     function burn(uint256 amount) public returns (bool) {
         require(isBurnable, "Burning is not allowed");
-        require(balanceOf[msg.sender] >= amount, "Insufficient balance to burn");
+        require(
+            balanceOf[msg.sender] >= amount,
+            "Insufficient balance to burn"
+        );
 
         totalSupply -= amount;
-        balanceOf[msg.sender] -= amount;  
-        emit Burn(msg.sender, amount);  
+        balanceOf[msg.sender] -= amount;
+        emit Burn(msg.sender, amount);
         return true;
     }
 
@@ -91,7 +119,6 @@ contract QswapTokenCreator is IERC20 {
         if (!_isKnown[user]) {
             _isKnown[user] = true;
             holderCount += 1;
-
         }
     }
 }

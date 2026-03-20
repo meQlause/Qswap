@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev": "bun x vite",
+    "build": "bun x vite build",
+    "lint": "bun x eslint .",
+    "preview": "bun x vite preview"
   },
   "dependencies": {
     "@ethersproject/providers": "^5.8.0",
