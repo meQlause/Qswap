@@ -38,7 +38,7 @@ const WelcomeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-[#212429] rounded-2xl p-6 max-w-[700px] w-full mx-4 relative"
+        className="bg-[#212429] rounded-2xl p-6 max-w-[700px] w-full mx-4 relative max-h-[90vh] overflow-y-auto shadow-2xl custom-scrollbar"
       >
         <button
           onClick={onClose}
